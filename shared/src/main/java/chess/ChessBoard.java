@@ -106,12 +106,4 @@ public class ChessBoard {
         }
         return builder.toString().strip();
     }
-
-    public static void main(String[] args){
-        ChessBoard new_board = new ChessBoard();
-        new_board.resetBoard();
-
-        System.out.println(new_board);
-    }
-
 }
