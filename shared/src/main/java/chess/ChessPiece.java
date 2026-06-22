@@ -31,10 +31,16 @@ public class ChessPiece {
         PAWN
     }
 
+    public enum TeamColor {
+        WHITE,
+        BLACK
+    }
+
     /**
      * @return Which team this chess piece belongs to
      */
     public ChessGame.TeamColor getTeamColor() {
+
         return pieceColor;
     }
 
@@ -42,6 +48,7 @@ public class ChessPiece {
      * @return which type of chess piece this piece is
      */
     public PieceType getPieceType() {
+
         return type;
     }
 
@@ -89,7 +96,7 @@ public class ChessPiece {
                 return "r";
             }
             case PieceType.PAWN -> {
-                return "kp";
+                return "p";
             }
             default -> {
                 return null;
