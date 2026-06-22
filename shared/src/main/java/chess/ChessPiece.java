@@ -10,7 +10,7 @@ import java.util.Objects;
  * signature of the existing methods.
  */
 public class ChessPiece {
-    private ChessGame.TeamColor pieceColor;
+    private final ChessGame.TeamColor pieceColor;
     private ChessPiece.PieceType type;
 
 
@@ -72,9 +72,28 @@ public class ChessPiece {
 
     @Override
     public String toString() {
-        return "ChessPiece{" +
-                "pieceColor=" + pieceColor +
-                ", type=" + type +
-                '}';
+        switch (type) {
+            case PieceType.KING -> {
+                return "k";
+            }
+            case PieceType.QUEEN -> {
+                return "q";
+            }
+            case PieceType.BISHOP -> {
+                return "b";
+            }
+            case PieceType.KNIGHT -> {
+                return "n";
+            }
+            case PieceType.ROOK -> {
+                return "r";
+            }
+            case PieceType.PAWN -> {
+                return "kp";
+            }
+            default -> {
+                return null;
+            }
+        }
     }
 }
