@@ -69,7 +69,7 @@ public class ChessBoard {
 
         for (int row = 7; row >= 0; row--) {
             for (int col = 0; col <= 7; col++) {
-                ChessPosition position = new ChessPosition(row, col);
+                ChessPosition position = new ChessPosition(row+1, col+1);
                 ChessPiece piece = getPiece(position);
 
                 builder.append("|");
