@@ -46,6 +46,13 @@ public class ChessBoard {
      * (How the game of chess normally starts)
      */
     public void resetBoard() {
+        board = new ChessPiece[8][8];
+
+        // place pawns
+        for (int i = 1; i <= 8; i++){
+            addPiece(new ChessPosition(2, i), new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.PAWN));
+            addPiece(new ChessPosition(7, i), new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.PAWN));
+        }
 
     }
 
@@ -85,6 +92,13 @@ public class ChessBoard {
             builder.append("|\n");
         }
         return builder.toString();
+    }
+
+    public static void main(String[] args){
+        ChessBoard new_board = new ChessBoard();
+        new_board.resetBoard();
+
+        System.out.println(new_board);
     }
 
 }
