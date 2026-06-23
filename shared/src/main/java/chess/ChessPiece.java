@@ -32,8 +32,6 @@ public class ChessPiece {
         PAWN
     }
 
-
-
     /**
      * @return Which team this chess piece belongs to
      */
@@ -166,10 +164,10 @@ public class ChessPiece {
 
         return switch(pieceType){
             case KING -> getKingMoves(board, myPosition, color);
-            case QUEEN -> getKingMoves(board, myPosition, color);
-            case BISHOP -> getKingMoves(board, myPosition, color);
-            case KNIGHT -> getKingMoves(board, myPosition, color);
-            case ROOK -> getKingMoves(board, myPosition, color);
+            case QUEEN -> getQueenMoves(board, myPosition, color);
+            case BISHOP -> getBishopMoves(board, myPosition, color);
+            case KNIGHT -> getKnightMoves(board, myPosition, color);
+            case ROOK -> getRookMoves(board, myPosition, color);
             case PAWN -> getPawnMoves(board, myPosition, color);
         };
     }
