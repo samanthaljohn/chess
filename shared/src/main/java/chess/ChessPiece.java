@@ -111,7 +111,25 @@ public class ChessPiece {
     }
 
     public Collection<ChessMove> getBishopMoves(ChessBoard board, ChessPosition position, ChessGame.TeamColor color){
-        throw new RuntimeException("Not implemented");
+        Collection<ChessMove> moves = new ArrayList<>();
+        int row = position.getRow(), col = position.getColumn();
+        int[][] directions = {{1, 1}, {1, -1}, {-1, 1}, {-1, -1}};
+
+        for (int i = 0; i < 4; i ++){
+            ChessPosition newPosition = new ChessPosition(row + directions[i][0], col + directions[i][1]);
+
+            while(inBoundsMove(newPosition) && !isFriendlyPiece(board, newPosition, color)){
+                moves.add(new ChessMove(position, newPosition, null));
+
+                if (isEnemyPiece(board, newPosition, color)){
+                    break;
+                }
+
+                newPosition = new ChessPosition(newPosition.getRow() + directions[i][0], newPosition.getColumn() + directions[i][1]);
+            }
+        }
+
+        return moves;
     }
 
     public Collection<ChessMove> getKnightMoves(ChessBoard board, ChessPosition position, ChessGame.TeamColor color){
