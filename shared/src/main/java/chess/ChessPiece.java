@@ -75,18 +75,26 @@ public class ChessPiece {
         } else {return 1;}
     }
 
+    public boolean isEmptySquare(ChessBoard board, ChessPosition position){
+        return board.getPiece(position) == null;
+    }
+
     public boolean isEnemyPiece(ChessBoard board, ChessPosition position, ChessGame.TeamColor myColor) {
+        if(isEmptySquare(board, position)){
+            return false;
+        }
+
         ChessPiece piece = board.getPiece(position);
         return piece.getTeamColor() != myColor;
     }
 
     public boolean isFriendlyPiece(ChessBoard board, ChessPosition position, ChessGame.TeamColor myColor){
+        if(isEmptySquare(board, position)){
+            return false;
+        }
+
         ChessPiece piece = board.getPiece(position);
         return piece.getTeamColor() != myColor;
-    }
-
-    public boolean isEmptySquare(ChessBoard board, ChessPosition position){
-        return board.getPiece(position) == null;
     }
 
     public Collection<ChessMove> getKingMoves(ChessBoard board, ChessPosition position, ChessGame.TeamColor color){
@@ -107,7 +115,12 @@ public class ChessPiece {
     }
 
     public Collection<ChessMove> getQueenMoves(ChessBoard board, ChessPosition position, ChessGame.TeamColor color){
-        throw new RuntimeException("Not implemented");
+        Collection<ChessMove> moves = new ArrayList<>();
+
+        moves.addAll(getBishopMoves(board, position, color));
+        moves.addAll(getRookMoves(board, position, color));
+
+        return moves;
     }
 
     public Collection<ChessMove> getBishopMoves(ChessBoard board, ChessPosition position, ChessGame.TeamColor color){
