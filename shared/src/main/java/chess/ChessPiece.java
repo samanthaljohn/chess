@@ -75,23 +75,29 @@ public class ChessPiece {
         } else {return 1;}
     }
 
-    public boolean isEnemyPiece(ChessBoard board, ChessPosition enemyPosition, ChessGame.TeamColor color) {
-        ChessPiece piece = board.getPiece(enemyPosition);
-        return piece.getTeamColor() != color;
+    public boolean isEnemyPiece(ChessBoard board, ChessPosition position, ChessGame.TeamColor myColor) {
+        ChessPiece piece = board.getPiece(position);
+        return piece.getTeamColor() != myColor;
+    }
+
+    public boolean isFriendlyPiece(ChessBoard board, ChessPosition position, ChessGame.TeamColor myColor){
+        ChessPiece piece = board.getPiece(position);
+        return piece.getTeamColor() != myColor;
+    }
+
+    public boolean isEmptySquare(ChessBoard board, ChessPosition position){
+        return board.getPiece(position) == null;
     }
 
     public Collection<ChessMove> getKingMoves(ChessBoard board, ChessPosition position, ChessGame.TeamColor color){
         Collection<ChessMove> moves = new ArrayList<>();
         int row = position.getRow(), col = position.getColumn();
 
-        for(int i = -1; i <= 1; i++){
-            for(int j = -1; j <= 1; j++){
-                if (i == 0 && j == 0){
-                    continue;
-                }
-
+        for (int i = -1; i <= 1; i += 2){
+            for (int j = -1; j <= 1; j += 2){
                 ChessPosition newPosition = new ChessPosition(row + i, col + j);
-                if (inBoundsMove(newPosition) && (board.getPiece(newPosition) == null || isEnemyPiece(board, newPosition, color))){
+
+                if (inBoundsMove(newPosition) && (isEmptySquare(board, newPosition) || isEnemyPiece(board, newPosition, color))){
                     moves.add(new ChessMove(position, newPosition, null));
                 }
             }
@@ -109,11 +115,48 @@ public class ChessPiece {
     }
 
     public Collection<ChessMove> getKnightMoves(ChessBoard board, ChessPosition position, ChessGame.TeamColor color){
-        throw new RuntimeException("Not implemented");
+        Collection<ChessMove> moves = new ArrayList<>();
+        int row = position.getRow(), col = position.getColumn();
+
+        for (int i = -1; i <= 1; i += 2){
+            for (int j = -1; j <= 1; j += 2){
+                ChessPosition newPosition1 = new ChessPosition(row + (2*i), col + j);
+
+                if (inBoundsMove(newPosition1) && (isEmptySquare(board, newPosition1) || isEnemyPiece(board, newPosition1, color))){
+                    moves.add(new ChessMove(position, newPosition1, null));
+                }
+
+                ChessPosition newPosition2 = new ChessPosition(row + i, col + (j*2));
+
+                if (inBoundsMove(newPosition2) && (isEmptySquare(board, newPosition2) || isEnemyPiece(board, newPosition2, color))){
+                    moves.add(new ChessMove(position, newPosition2, null));
+                }
+            }
+        }
+
+        return moves;
     }
 
     public Collection<ChessMove> getRookMoves(ChessBoard board, ChessPosition position, ChessGame.TeamColor color){
-        throw new RuntimeException("Not implemented");
+        Collection<ChessMove> moves = new ArrayList<>();
+        int row = position.getRow(), col = position.getColumn();
+        int[][] directions = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+
+        for(int i = 0; i < 4; i++){
+            ChessPosition newPosition = new ChessPosition(row + directions[i][0], col + directions[i][1]);
+
+            while (inBoundsMove(newPosition) && !isFriendlyPiece(board, newPosition, color)){
+                moves.add(new ChessMove(position, newPosition, null));
+
+                if(isEnemyPiece(board, newPosition, color)){
+                    break;
+                }
+
+                newPosition = new ChessPosition(newPosition.getRow() + directions[i][0], newPosition.getColumn() + directions[i][1]);
+            }
+        }
+
+        return moves;
     }
 
     public Collection<ChessMove> getPawnMoves(ChessBoard board, ChessPosition startPosition, ChessGame.TeamColor color){
