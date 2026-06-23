@@ -100,14 +100,13 @@ public class ChessPiece {
     public Collection<ChessMove> getKingMoves(ChessBoard board, ChessPosition position, ChessGame.TeamColor color){
         Collection<ChessMove> moves = new ArrayList<>();
         int row = position.getRow(), col = position.getColumn();
+        int[][] directions = {{1, 1}, {1, -1}, {-1, 1}, {-1, -1}, {1, 0}, {-1, 0}, {0, 1}, {0, -1}};
 
-        for (int i = -1; i <= 1; i += 2){
-            for (int j = -1; j <= 1; j += 2){
-                ChessPosition newPosition = new ChessPosition(row + i, col + j);
+        for (int i = 0; i < 8; i++){
+            ChessPosition newPosition = new ChessPosition(row + directions[i][0], col + directions[i][1]);
 
-                if (inBoundsMove(newPosition) && (isEmptySquare(board, newPosition) || isEnemyPiece(board, newPosition, color))){
-                    moves.add(new ChessMove(position, newPosition, null));
-                }
+            if(inBoundsMove(newPosition) && !isFriendlyPiece(board, position, color)){
+                moves.add(new ChessMove(position, newPosition, null));
             }
         }
 
