@@ -105,7 +105,7 @@ public class ChessPiece {
         for (int i = 0; i < 8; i++){
             ChessPosition newPosition = new ChessPosition(row + directions[i][0], col + directions[i][1]);
 
-            if(inBoundsMove(newPosition) && !isFriendlyPiece(board, position, color)){
+            if(inBoundsMove(newPosition) && !isFriendlyPiece(board, newPosition, color)){
                 moves.add(new ChessMove(position, newPosition, null));
             }
         }
