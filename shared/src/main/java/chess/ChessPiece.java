@@ -94,7 +94,7 @@ public class ChessPiece {
         }
 
         ChessPiece piece = board.getPiece(position);
-        return piece.getTeamColor() != myColor;
+        return piece.getTeamColor() == myColor;
     }
 
     public Collection<ChessMove> getKingMoves(ChessBoard board, ChessPosition position, ChessGame.TeamColor color){
@@ -198,7 +198,7 @@ public class ChessPiece {
         int promotionRow = getPromotionRow(color);
 
         ChessPosition forwardOne = new ChessPosition(row + dir, col);
-        if (inBoundsMove(forwardOne) && board.getPiece(forwardOne) == null){
+        if (inBoundsMove(forwardOne) && isEmptySquare(board, forwardOne)){
             if (row + dir == getPromotionRow(color)){
                 //add promotions... maybe use a function here??
                 for (PieceType piece : PieceType.values()) {
@@ -213,7 +213,7 @@ public class ChessPiece {
 
             if (row == startingRow){
                 ChessPosition forwardTwo = new ChessPosition(row + (dir * 2), col);
-                if (inBoundsMove(forwardTwo) && board.getPiece(forwardTwo) == null){
+                if (inBoundsMove(forwardTwo) && isEmptySquare(board, forwardTwo)){
                     moves.add(new ChessMove(startPosition, forwardTwo, null));
                 }
             }
