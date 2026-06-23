@@ -1,5 +1,6 @@
 package chess;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
 
@@ -31,11 +32,12 @@ public class ChessPiece {
         PAWN
     }
 
+
+
     /**
      * @return Which team this chess piece belongs to
      */
     public ChessGame.TeamColor getTeamColor() {
-
         return pieceColor;
     }
 
@@ -43,12 +45,111 @@ public class ChessPiece {
      * @return which type of chess piece this piece is
      */
     public PieceType getPieceType() {
-
         return type;
     }
 
-    public boolean inBoundsMove(int row, int col){
+    /** __________________________________________________ */
+
+    public boolean inBoundsMove(ChessPosition position){
+        int row = position.getRow(), col = position.getColumn();
+
+        if (row < 1 || row > 8 || col < 1 || col > 8){
+            return false;
+        }
+        return true;
+    }
+
+    public int getDirection(ChessGame.TeamColor color){
+        if (color == ChessGame.TeamColor.WHITE) {
+            return 1;
+        } else {return -1;}
+    }
+
+    public int getStartRow(ChessGame.TeamColor color){
+        if (color == ChessGame.TeamColor.WHITE) {
+            return 2;
+        } else {return 7;}
+    }
+
+    public int getPromotionRow(ChessGame.TeamColor color){
+        if (color == ChessGame.TeamColor.WHITE) {
+            return 8;
+        } else {return 1;}
+    }
+
+    public boolean isEnemyPiece(ChessBoard board, ChessPosition enemyPosition, ChessGame.TeamColor color) {
+        ChessPiece piece = board.getPiece(enemyPosition);
+        return piece.getTeamColor() == color;
+    }
+
+    public Collection<ChessMove> getKingMoves(ChessBoard board, ChessPosition position, ChessGame.TeamColor color){
         throw new RuntimeException("Not implemented");
+    }
+
+    public Collection<ChessMove> getQueenMoves(ChessBoard board, ChessPosition position, ChessGame.TeamColor color){
+        throw new RuntimeException("Not implemented");
+    }
+
+    public Collection<ChessMove> getBishopMoves(ChessBoard board, ChessPosition position, ChessGame.TeamColor color){
+        throw new RuntimeException("Not implemented");
+    }
+
+    public Collection<ChessMove> getKnightMoves(ChessBoard board, ChessPosition position, ChessGame.TeamColor color){
+        throw new RuntimeException("Not implemented");
+    }
+
+    public Collection<ChessMove> getRookMoves(ChessBoard board, ChessPosition position, ChessGame.TeamColor color){
+        throw new RuntimeException("Not implemented");
+    }
+
+    public Collection<ChessMove> getPawnMoves(ChessBoard board, ChessPosition startPosition, ChessGame.TeamColor color){
+        Collection<ChessMove> moves = new ArrayList<>();
+        int row = startPosition.getRow(), col = startPosition.getColumn();
+        int dir = getDirection(color);
+        int startingRow = getStartRow(color);
+        int promotionRow = getPromotionRow(color);
+
+        ChessPosition forwardOne = new ChessPosition(row + dir, col);
+        if (inBoundsMove(forwardOne) && board.getPiece(forwardOne) == null){
+            if (row + dir == getPromotionRow(color)){
+                //add promotions... maybe use a function here??
+                for (PieceType piece : PieceType.values()) {
+                    if (piece != PieceType.PAWN && piece != PieceType.KING) {
+                        moves.add(new ChessMove(startPosition, forwardOne, piece));
+                    }
+                }
+            }
+            else {
+                moves.add(new ChessMove(startPosition, forwardOne, null));
+            }
+
+            if (row == startingRow){
+                ChessPosition forwardTwo = new ChessPosition(row + (dir * 2), col);
+                if (inBoundsMove(forwardTwo) && board.getPiece(forwardTwo) == null){
+                    moves.add(new ChessMove(startPosition, forwardTwo, null));
+                }
+            }
+        }
+
+        // captures - check left, then right
+        for (int i = -1; i <= 1; i += 2) {
+            ChessPosition capture = new ChessPosition(row + dir, col + i);
+
+            if (inBoundsMove(capture) && isEnemyPiece(board, capture, color)) {
+                if (promotionRow == row + dir) {
+                    // add all promotion options
+                    for (PieceType piece : PieceType.values()) {
+                        if (piece != PieceType.PAWN && piece != PieceType.KING) {
+                            moves.add(new ChessMove(startPosition, capture, piece));
+                        }
+                    }
+                } else {
+                    moves.add(new ChessMove(startPosition, capture, null));
+                }
+            }
+        }
+
+        return moves;
     }
 
     /**
@@ -59,7 +160,18 @@ public class ChessPiece {
      * @return Collection of valid moves
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        throw new RuntimeException("Not implemented");
+        ChessPiece piece = board.getPiece(myPosition);
+        PieceType pieceType = piece.getPieceType();
+        ChessGame.TeamColor color = piece.getTeamColor();
+
+        return switch(pieceType){
+            case KING -> getKingMoves(board, myPosition, color);
+            case QUEEN -> getKingMoves(board, myPosition, color);
+            case BISHOP -> getKingMoves(board, myPosition, color);
+            case KNIGHT -> getKingMoves(board, myPosition, color);
+            case ROOK -> getKingMoves(board, myPosition, color);
+            case PAWN -> getPawnMoves(board, myPosition, color);
+        };
     }
 
     @Override
