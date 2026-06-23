@@ -77,11 +77,27 @@ public class ChessPiece {
 
     public boolean isEnemyPiece(ChessBoard board, ChessPosition enemyPosition, ChessGame.TeamColor color) {
         ChessPiece piece = board.getPiece(enemyPosition);
-        return piece.getTeamColor() == color;
+        return piece.getTeamColor() != color;
     }
 
     public Collection<ChessMove> getKingMoves(ChessBoard board, ChessPosition position, ChessGame.TeamColor color){
-        throw new RuntimeException("Not implemented");
+        Collection<ChessMove> moves = new ArrayList<>();
+        int row = position.getRow(), col = position.getColumn();
+
+        for(int i = -1; i <= 1; i++){
+            for(int j = -1; j <= 1; j++){
+                if (i == 0 && j == 0){
+                    continue;
+                }
+
+                ChessPosition newPosition = new ChessPosition(row + i, col + j);
+                if (inBoundsMove(newPosition) && (board.getPiece(newPosition) == null || isEnemyPiece(board, newPosition, color))){
+                    moves.add(new ChessMove(position, newPosition, null));
+                }
+            }
+        }
+
+        return moves;
     }
 
     public Collection<ChessMove> getQueenMoves(ChessBoard board, ChessPosition position, ChessGame.TeamColor color){
