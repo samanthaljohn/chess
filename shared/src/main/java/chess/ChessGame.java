@@ -51,6 +51,7 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
+        ChessBoard currentBoard = board;
         ChessPiece piece = board.getPiece(startPosition);
 
         if (piece == null) {return null;}
@@ -60,18 +61,15 @@ public class ChessGame {
         Collection<ChessMove> validMoves = new ArrayList<>();
 
         for (ChessMove move : allMoves){
-            ChessPiece capturedPiece = board.getPiece(move.getEndPosition()); // if no piece in endPosition, saves null
             ChessBoard tempBoard = new ChessBoard(board);
+            tempBoard.addPiece(move.getStartPosition(), null);
+            tempBoard.addPiece(move.getEndPosition(), piece);
             setBoard(tempBoard);
-
-            try{
-                makeMove(move);
-            } catch (InvalidMoveException exception) {}
 
             if (!isInCheck(color)){
                 validMoves.add(move);
             }
-            undoMove(move, capturedPiece);
+            board = currentBoard;
         }
 
         return validMoves;
@@ -149,26 +147,15 @@ public class ChessGame {
 
         for (ChessPiece.PieceType type : ChessPiece.PieceType.values()){
             ChessPiece tempPiece = new ChessPiece(teamColor, type);
-            boardCopy.addPiece(kingPosition, tempPiece);
-
-            if(type == ChessPiece.PieceType.QUEEN || type == ChessPiece.PieceType.KING){
-                continue;
-            }
-
             Collection<ChessMove> moves = tempPiece.pieceMoves(board, kingPosition);
+
             for (ChessMove move : moves){
                 ChessPosition endPosition = move.getEndPosition();
-
                 ChessPiece target = board.getPiece(endPosition);
                 if (target == null) {continue;}
 
-                if (teamColor != target.getTeamColor()){
-                    if ((type == ChessPiece.PieceType.BISHOP || type == ChessPiece.PieceType.ROOK) && target.getPieceType() == ChessPiece.PieceType.QUEEN) {
-                        return true;
-                    }
-                    else if (target.getPieceType() == type){
-                        return true;
-                    }
+                if (teamColor != target.getTeamColor() && target.getPieceType() == type){
+                    return true;
                 }
             }
         }
