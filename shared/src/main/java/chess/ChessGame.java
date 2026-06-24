@@ -2,6 +2,7 @@ package chess;
 
 import java.util.Collection;
 import java.util.ArrayList;
+import java.util.Objects;
 
 /**
  * A class that can manage a chess game, making moves on a board
@@ -73,6 +74,24 @@ public class ChessGame {
         }
 
         return validMoves;
+    }
+
+    public boolean noPieceWithValidMoves(TeamColor teamColor){
+        for (int i = 1; i <= 8; i++){
+            for (int j = 1; j <= 8; j++){
+                ChessPosition position = new ChessPosition(i, j);
+                ChessPiece piece = board.getPiece(position);
+
+                if (piece != null && piece.getTeamColor() == teamColor){
+                    Collection<ChessMove> moves = validMoves(position);
+
+                    if (moves != null && moves.size() != 0){
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
     }
 
     /**
@@ -219,5 +238,25 @@ public class ChessGame {
         return board;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ChessGame chessGame = (ChessGame) o;
+        return turn == chessGame.turn && Objects.equals(board, chessGame.board);
+    }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(turn, board);
+    }
+
+    @Override
+    public String toString() {
+        return "ChessGame{" +
+                "turn=" + turn +
+                ", board=" + board +
+                '}';
+    }
 }
