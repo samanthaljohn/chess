@@ -1,6 +1,7 @@
 package chess;
 
 import java.util.Collection;
+import java.util.ArrayList;
 
 /**
  * A class that can manage a chess game, making moves on a board
@@ -10,10 +11,12 @@ import java.util.Collection;
  */
 public class ChessGame {
     private static TeamColor turn;
+    private ChessBoard board;
 
 
     public ChessGame() {
         this.turn = TeamColor.WHITE;
+        this.board = new ChessBoard();
     }
 
     /**
@@ -48,7 +51,18 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
-        throw new RuntimeException("Not implemented");
+        ChessPiece piece = board.getPiece(startPosition);
+        Collection<ChessMove> allMoves = piece.pieceMoves(board, startPosition);
+        TeamColor color = piece.getTeamColor();
+        Collection<ChessMove> validMoves = new ArrayList<>();
+
+        for (ChessMove move : allMoves){
+            if (!isInCheck(color)){
+                validMoves.add(move);
+            }
+        }
+
+        return validMoves;
     }
 
     /**
@@ -58,7 +72,23 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
-        throw new RuntimeException("Not implemented");
+        // do i need to promote a piece when it is a pawn?
+       ChessPosition startPosition = move.getStartPosition(), endPosition = move.getEndPosition();
+       ChessPiece piece = board.getPiece(startPosition);
+
+       if (piece == null){
+           throw new InvalidMoveException("No piece is in provided start position");
+       }
+
+       Collection<ChessMove> allMoves = piece.pieceMoves(board, startPosition);
+       TeamColor color = piece.getTeamColor();
+
+       if (allMoves.contains(move) && turn == color){
+            board.addPiece(startPosition, null);
+            board.addPiece(endPosition, piece);
+       } else {
+           throw new InvalidMoveException();
+       }
     }
 
     /**
@@ -98,7 +128,7 @@ public class ChessGame {
      * @param board the new board to use
      */
     public void setBoard(ChessBoard board) {
-        throw new RuntimeException("Not implemented");
+        this.board = board;
     }
 
     /**
@@ -107,6 +137,8 @@ public class ChessGame {
      * @return the chessboard
      */
     public ChessBoard getBoard() {
-        throw new RuntimeException("Not implemented");
+        return board;
     }
+
+
 }
