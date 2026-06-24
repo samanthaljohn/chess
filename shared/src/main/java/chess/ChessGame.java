@@ -101,7 +101,16 @@ public class ChessGame {
                     piece = new ChessPiece(color, move.getPromotionPiece());
                 }
             }
+            // in case we got rid of a piece by overwriting
+            ChessPiece captured = board.getPiece(endPosition);
             board.addPiece(endPosition, piece);
+
+            //check if we are in check in the new position
+           if (isInCheck(color)){
+               board.addPiece(startPosition, piece);
+               board.addPiece(endPosition, captured);
+               throw new InvalidMoveException();
+           }
             // change team colors
            if (turn == TeamColor.WHITE){
                turn = TeamColor.BLACK;
