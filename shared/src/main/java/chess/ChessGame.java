@@ -94,10 +94,10 @@ public class ChessGame {
            throw new InvalidMoveException("No piece is in provided start position");
        }
 
-       Collection<ChessMove> validMoves = validMoves(startPosition);
+       Collection<ChessMove> allMoves = piece.pieceMoves(board, startPosition);
        TeamColor color = piece.getTeamColor();
 
-       if (validMoves.contains(move) && turn == color){
+       if (allMoves.contains(move) && turn == color){
             board.addPiece(startPosition, null);
             // check if a promotion is part of the move
             if (piece.getPieceType() == ChessPiece.PieceType.PAWN){
