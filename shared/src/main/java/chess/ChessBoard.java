@@ -13,7 +13,26 @@ public class ChessBoard {
     private ChessPiece[][] board;
 
     public ChessBoard() {
+
         this.board = new ChessPiece[8][8];
+    }
+
+    /**
+     * An overloaded constructor to allow a copy of a chess board
+     *
+     * @param originalBoard the board to be copied
+     */
+    public ChessBoard(ChessBoard originalBoard) {
+        this.board = new ChessPiece[8][8];
+        for (int row = 1; row <= 8; row++) {
+            for (int col = 1; col <= 8; col++) {
+                ChessPosition pos = new ChessPosition(row, col);
+                ChessPiece piece = originalBoard.getPiece(pos);
+                if (piece != null) {
+                    this.addPiece(pos, new ChessPiece(piece.getTeamColor(), piece.getPieceType()));
+                }
+            }
+        }
     }
 
     /**
