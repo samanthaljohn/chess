@@ -10,7 +10,7 @@ import java.util.ArrayList;
  * signature of the existing methods.
  */
 public class ChessGame {
-    private static TeamColor turn;
+    private TeamColor turn;
     private ChessBoard board;
 
 
@@ -51,15 +51,29 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
+
+        ChessBoard currentBoard = board;
+
         ChessPiece piece = board.getPiece(startPosition);
+
+        if (piece == null) {return null;}
+
         Collection<ChessMove> allMoves = piece.pieceMoves(board, startPosition);
         TeamColor color = piece.getTeamColor();
         Collection<ChessMove> validMoves = new ArrayList<>();
 
         for (ChessMove move : allMoves){
+            ChessBoard tempBoard = new ChessBoard(board);
+            setBoard(tempBoard);
+
+            try{
+                makeMove(move);
+            } catch (InvalidMoveException exception) {}
+
             if (!isInCheck(color)){
                 validMoves.add(move);
             }
+            setBoard(currentBoard);
         }
 
         return validMoves;
@@ -80,10 +94,10 @@ public class ChessGame {
            throw new InvalidMoveException("No piece is in provided start position");
        }
 
-       Collection<ChessMove> allMoves = piece.pieceMoves(board, startPosition);
+       Collection<ChessMove> validMoves = validMoves(startPosition);
        TeamColor color = piece.getTeamColor();
 
-       if (allMoves.contains(move) && turn == color){
+       if (validMoves.contains(move) && turn == color){
             board.addPiece(startPosition, null);
             // check if a promotion is part of the move
             if (piece.getPieceType() == ChessPiece.PieceType.PAWN){
@@ -104,6 +118,23 @@ public class ChessGame {
        }
     }
 
+    public ChessPosition findKingPosition(TeamColor teamColor){
+        for(int i = 1; i <= 8; i++){
+            for(int j = 1; j <= 8;j++){
+                ChessPosition position = new ChessPosition(i, j);
+
+                ChessPiece piece = board.getPiece(position);
+                TeamColor color = piece.getTeamColor();
+                ChessPiece.PieceType type = piece.getPieceType();
+
+                if (type == ChessPiece.PieceType.KING && color == teamColor){
+                    return position;
+                }
+            }
+        }
+        return null;
+    }
+
     /**
      * Determines if the given team is in check
      *
@@ -111,7 +142,35 @@ public class ChessGame {
      * @return True if the specified team is in check
      */
     public boolean isInCheck(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        // pretend the king is a different piece, find all possible moves for that piece, if it encounters
+        // a piece of that same type on enemy team, then it is in check
+        ChessBoard boardCopy = new ChessBoard(board);
+        ChessPosition kingPosition = findKingPosition(teamColor);
+
+        for (ChessPiece.PieceType type : ChessPiece.PieceType.values()){
+            ChessPiece tempPiece = new ChessPiece(teamColor, type);
+            boardCopy.addPiece(kingPosition, tempPiece);
+
+            if(type == ChessPiece.PieceType.QUEEN || type == ChessPiece.PieceType.KING){
+                continue;
+            }
+
+            Collection<ChessMove> moves = tempPiece.pieceMoves(board, kingPosition);
+            for (ChessMove move : moves){
+                ChessPosition endPosition = move.getEndPosition();
+                ChessPiece target = board.getPiece(endPosition);
+
+                if (teamColor != target.getTeamColor()){
+                    if ((type == ChessPiece.PieceType.BISHOP || type == ChessPiece.PieceType.ROOK) && target.getPieceType() == ChessPiece.PieceType.QUEEN) {
+                        return true;
+                    }
+                    else if (target.getPieceType() == type){
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     /**
