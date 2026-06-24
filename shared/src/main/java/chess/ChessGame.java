@@ -85,6 +85,11 @@ public class ChessGame {
 
        if (allMoves.contains(move) && turn == color){
             board.addPiece(startPosition, null);
+            if (piece.getPieceType() == ChessPiece.PieceType.PAWN){
+                if (piece.getPromotionRow(color) == endPosition.getRow()){
+                    piece = new ChessPiece(color, move.getPromotionPiece());
+                }
+            }
             board.addPiece(endPosition, piece);
        } else {
            throw new InvalidMoveException();
