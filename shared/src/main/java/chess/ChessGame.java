@@ -142,11 +142,12 @@ public class ChessGame {
     public boolean isInCheck(TeamColor teamColor) {
         // pretend the king is a different piece, find all possible moves for that piece, if it encounters
         // a piece of that same type on enemy team, then it is in check
-        ChessBoard boardCopy = new ChessBoard(board);
         ChessPosition kingPosition = findKingPosition(teamColor);
+        ChessPiece king = board.getPiece(kingPosition);
 
         for (ChessPiece.PieceType type : ChessPiece.PieceType.values()){
             ChessPiece tempPiece = new ChessPiece(teamColor, type);
+            board.addPiece(kingPosition, tempPiece);
             Collection<ChessMove> moves = tempPiece.pieceMoves(board, kingPosition);
 
             for (ChessMove move : moves){
@@ -155,10 +156,12 @@ public class ChessGame {
                 if (target == null) {continue;}
 
                 if (teamColor != target.getTeamColor() && target.getPieceType() == type){
+                    board.addPiece(kingPosition, king);
                     return true;
                 }
             }
         }
+        board.addPiece(kingPosition, king);
         return false;
     }
 
