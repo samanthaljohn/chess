@@ -124,6 +124,8 @@ public class ChessGame {
                 ChessPosition position = new ChessPosition(i, j);
 
                 ChessPiece piece = board.getPiece(position);
+                if (piece == null) {continue;}
+
                 TeamColor color = piece.getTeamColor();
                 ChessPiece.PieceType type = piece.getPieceType();
 
@@ -158,7 +160,9 @@ public class ChessGame {
             Collection<ChessMove> moves = tempPiece.pieceMoves(board, kingPosition);
             for (ChessMove move : moves){
                 ChessPosition endPosition = move.getEndPosition();
+
                 ChessPiece target = board.getPiece(endPosition);
+                if (target == null) {continue;}
 
                 if (teamColor != target.getTeamColor()){
                     if ((type == ChessPiece.PieceType.BISHOP || type == ChessPiece.PieceType.ROOK) && target.getPieceType() == ChessPiece.PieceType.QUEEN) {
