@@ -85,12 +85,20 @@ public class ChessGame {
 
        if (allMoves.contains(move) && turn == color){
             board.addPiece(startPosition, null);
+            // check if a promotion is part of the move
             if (piece.getPieceType() == ChessPiece.PieceType.PAWN){
                 if (piece.getPromotionRow(color) == endPosition.getRow()){
                     piece = new ChessPiece(color, move.getPromotionPiece());
                 }
             }
             board.addPiece(endPosition, piece);
+            // change team colors
+           if (turn == TeamColor.WHITE){
+               turn = TeamColor.BLACK;
+           } else {
+               turn = TeamColor.WHITE;
+           }
+
        } else {
            throw new InvalidMoveException();
        }
