@@ -72,21 +72,17 @@ public class ChessGame {
             }
         }
         else if (type == ChessPiece.PieceType.ROOK){
-            if (color == TeamColor.WHITE){
-                if (startPosition.getColumn() == 1){
-                    return wLeftRookMoved;
-                }
-                else {
-                    return wRightRookMoved;
-                }
+            if (startPosition.equals(new ChessPosition(1, 1))){
+                return wLeftRookMoved;
             }
-            else {
-                if (startPosition.getColumn() == 1){
-                    return bLeftRookMoved;
-                }
-                else {
-                    return bRightRookMoved;
-                }
+            if (startPosition.equals(new ChessPosition(1, 8))){
+                return wRightRookMoved;
+            }
+            if (startPosition.equals(new ChessPosition(8, 1))){
+                return bLeftRookMoved;
+            }
+            if (startPosition.equals(new ChessPosition(8, 8))){
+                return bRightRookMoved;
             }
         }
         return false;
@@ -144,9 +140,20 @@ public class ChessGame {
         ChessPiece piece = board.getPiece(startPosition);
         TeamColor color = piece.getTeamColor();
         int row = rowBasedColor(color);
+        System.out.println("=== findCastlingMoves ===");
+        System.out.println("isKing: " + (piece.getPieceType() == ChessPiece.PieceType.KING));
+        System.out.println("hasMoved: " + hasMoved(startPosition));
+        System.out.println("isInCheck: " + isInCheck(color));
+        System.out.println("wKingMoved: " + wKingMoved);
+        System.out.println("wLeftRookMoved: " + wLeftRookMoved);
+        System.out.println("wRightRookMoved: " + wRightRookMoved);
         if(piece.getPieceType() == ChessPiece.PieceType.KING && !hasMoved(startPosition) && !isInCheck(color)){
             //check each of the rook sides:
             ChessPosition leftRook = new ChessPosition(row, 1), rightRook = new ChessPosition(row, 8);
+            System.out.println("leftRookPiece: " + board.getPiece(leftRook));
+            System.out.println("rightRookPiece: " + board.getPiece(rightRook));
+            System.out.println("leftCastle: " + (board.getPiece(leftRook) != null && leftCastle(leftRook, color)));
+            System.out.println("rightCastle: " + (board.getPiece(rightRook) != null && rightCastle(rightRook, color)));
 
             if(board.getPiece(leftRook) != null && leftCastle(leftRook, color)){
                 ChessPosition newKingPosition = new ChessPosition(row, 3);
@@ -195,7 +202,7 @@ public class ChessGame {
 
         Collection<ChessMove> castlingMoves = findCastlingMoves(startPosition);
         if (!castlingMoves.isEmpty()){
-            allMoves.addAll(castlingMoves);
+            validMoves.addAll(castlingMoves);
         }
 
         return validMoves;
@@ -233,8 +240,8 @@ public class ChessGame {
        if (piece == null){
            throw new InvalidMoveException("No piece is in provided start position");
        }
+       ChessPiece.PieceType type = piece.getPieceType();
 
-       Collection<ChessMove> allMoves = piece.pieceMoves(board, startPosition);
        Collection<ChessMove> validMoves = validMoves(startPosition);
        TeamColor color = piece.getTeamColor();
 
@@ -246,6 +253,27 @@ public class ChessGame {
                     piece = new ChessPiece(color, move.getPromotionPiece());
                 }
             }
+            // check if the move is a castle, move rook to right spot
+           if (piece.getPieceType() == ChessPiece.PieceType.KING){
+               // left castle
+               int row = startPosition.getRow();
+               if(startPosition.getColumn() - endPosition.getColumn() == 2){
+                   ChessPosition leftRookPosition = new ChessPosition(row, 1);
+                   ChessPiece leftRook = board.getPiece(leftRookPosition);
+                   ChessPosition newLeftRookPosition = new ChessPosition(row, 4);
+                   board.addPiece(leftRookPosition, null);
+                   board.addPiece(newLeftRookPosition, leftRook);
+               }
+               // right castle
+               else if (endPosition.getColumn() - startPosition.getColumn() == 2){
+                   ChessPosition rightRookPosition = new ChessPosition(row, 8);
+                   ChessPiece rightRook = board.getPiece(rightRookPosition);
+                   ChessPosition newLeftRookPosition = new ChessPosition(row, 6);
+                   board.addPiece(rightRookPosition, null);
+                   board.addPiece(newLeftRookPosition, rightRook);
+               }
+           }
+
             // in case we got rid of a piece by overwriting
             ChessPiece captured = board.getPiece(endPosition);
             board.addPiece(endPosition, piece);
@@ -262,7 +290,26 @@ public class ChessGame {
            } else {
                turn = TeamColor.WHITE;
            }
-
+           // marked things as moved
+           if (type == ChessPiece.PieceType.KING) {
+               if (color == TeamColor.WHITE) wKingMoved = true;
+               else bKingMoved = true;
+           }
+           //check if we are moving from the starting position
+           if (type == ChessPiece.PieceType.ROOK) {
+               if (startPosition.equals(new ChessPosition(1, 1))){
+                   wLeftRookMoved = true;
+               }
+               else if (startPosition.equals(new ChessPosition(1, 8))) {
+                   wRightRookMoved = true;
+               }
+               else if (startPosition.equals(new ChessPosition(8, 1))){
+                   bLeftRookMoved = true;
+               }
+               else if (startPosition.equals(new ChessPosition(8, 8))){
+                   bRightRookMoved = true;
+               }
+           }
        } else {
            throw new InvalidMoveException();
        }
