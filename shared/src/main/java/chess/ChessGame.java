@@ -21,6 +21,8 @@ public class ChessGame {
     private boolean wRightRookMoved = false;
     private boolean bRightRookMoved = false;
 
+    private ChessPosition enPassantSquare = null;
+
     public ChessGame() {
         this.turn = TeamColor.WHITE;
         this.board = new ChessBoard();
@@ -171,6 +173,30 @@ public class ChessGame {
         return castlingMoves;
     }
 
+    public ChessMove findEnPassantMove(ChessPosition startPosition){
+        // if no active possible enPassant Square
+        if (enPassantSquare == null){
+            return null;
+        }
+        ChessPiece piece = board.getPiece(startPosition);
+        TeamColor color = piece.getTeamColor();
+        int startRow = startPosition.getRow();
+        int startCol = startPosition.getColumn();
+
+        int passantRow = enPassantSquare.getRow();
+        int passantCol = enPassantSquare.getColumn();
+
+        if (startCol + 1 == passantCol || startCol - 1 == passantCol){
+            if (color == TeamColor.WHITE && startRow == 5){
+                return new ChessMove(startPosition, enPassantSquare, null);
+            }
+            else if (color == TeamColor.BLACK && startRow == 4){
+                return new ChessMove(startPosition, enPassantSquare, null);
+            }
+        }
+        return null;
+    }
+
     /**
      * Gets all valid moves for a piece at the given location
      *
@@ -200,9 +226,16 @@ public class ChessGame {
             board = currentBoard;
         }
 
+        // check for castling moves
         Collection<ChessMove> castlingMoves = findCastlingMoves(startPosition);
         if (!castlingMoves.isEmpty()){
             validMoves.addAll(castlingMoves);
+        }
+
+        // check for en passant move
+        ChessMove enPassantMove = findEnPassantMove(startPosition);
+        if (enPassantMove != null){
+            validMoves.add(enPassantMove);
         }
 
         return validMoves;
@@ -247,10 +280,21 @@ public class ChessGame {
 
        if (validMoves.contains(move) && turn == color){
             board.addPiece(startPosition, null);
-            // check if a promotion is part of the move
+            // check if a promotion is part of the move is an en passant move
             if (piece.getPieceType() == ChessPiece.PieceType.PAWN){
                 if (piece.getPromotionRow(color) == endPosition.getRow()){
                     piece = new ChessPiece(color, move.getPromotionPiece());
+                }
+                // check if en passant move
+                if (endPosition.equals(enPassantSquare)){
+                    int capturedPawnRow = startPosition.getRow();
+                    board.addPiece(new ChessPosition(capturedPawnRow, endPosition.getColumn()), null);
+                }
+                //reset it
+                enPassantSquare = null;
+                if(endPosition.getRow() - startPosition.getRow() == 2 || startPosition.getRow() - endPosition.getRow() == 2){
+                    int skippedRow = (startPosition.getRow() + endPosition.getRow()) / 2;
+                    enPassantSquare = new ChessPosition(skippedRow, startPosition.getColumn());
                 }
             }
             // check if the move is a castle, move rook to right spot
