@@ -97,6 +97,27 @@ public class ChessPiece {
         return piece.getTeamColor() == myColor;
     }
 
+    public Collection<ChessMove> getMoveLoop(ChessBoard board, ChessPosition position, ChessGame.TeamColor color, int[][] directions){
+        Collection<ChessMove> moves = new ArrayList<>();
+        int row = position.getRow(), col = position.getColumn();
+
+        for (int i = 0; i < 4; i ++){
+            ChessPosition newPosition = new ChessPosition(row + directions[i][0], col + directions[i][1]);
+
+            while(inBoundsMove(newPosition) && !isFriendlyPiece(board, newPosition, color)){
+                moves.add(new ChessMove(position, newPosition, null));
+
+                if (isEnemyPiece(board, newPosition, color)){
+                    break;
+                }
+
+                newPosition = new ChessPosition(newPosition.getRow() + directions[i][0], newPosition.getColumn() + directions[i][1]);
+            }
+        }
+
+        return moves;
+    }
+
     public Collection<ChessMove> getKingMoves(ChessBoard board, ChessPosition position, ChessGame.TeamColor color){
         Collection<ChessMove> moves = new ArrayList<>();
         int row = position.getRow(), col = position.getColumn();
@@ -123,25 +144,8 @@ public class ChessPiece {
     }
 
     public Collection<ChessMove> getBishopMoves(ChessBoard board, ChessPosition position, ChessGame.TeamColor color){
-        Collection<ChessMove> moves = new ArrayList<>();
-        int row = position.getRow(), col = position.getColumn();
         int[][] directions = {{1, 1}, {1, -1}, {-1, 1}, {-1, -1}};
-
-        for (int i = 0; i < 4; i ++){
-            ChessPosition newPosition = new ChessPosition(row + directions[i][0], col + directions[i][1]);
-
-            while(inBoundsMove(newPosition) && !isFriendlyPiece(board, newPosition, color)){
-                moves.add(new ChessMove(position, newPosition, null));
-
-                if (isEnemyPiece(board, newPosition, color)){
-                    break;
-                }
-
-                newPosition = new ChessPosition(newPosition.getRow() + directions[i][0], newPosition.getColumn() + directions[i][1]);
-            }
-        }
-
-        return moves;
+        return getMoveLoop(board, position, color, directions);
     }
 
     public Collection<ChessMove> getKnightMoves(ChessBoard board, ChessPosition position, ChessGame.TeamColor color){
@@ -168,25 +172,8 @@ public class ChessPiece {
     }
 
     public Collection<ChessMove> getRookMoves(ChessBoard board, ChessPosition position, ChessGame.TeamColor color){
-        Collection<ChessMove> moves = new ArrayList<>();
-        int row = position.getRow(), col = position.getColumn();
         int[][] directions = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
-
-        for(int i = 0; i < 4; i++){
-            ChessPosition newPosition = new ChessPosition(row + directions[i][0], col + directions[i][1]);
-
-            while (inBoundsMove(newPosition) && !isFriendlyPiece(board, newPosition, color)){
-                moves.add(new ChessMove(position, newPosition, null));
-
-                if(isEnemyPiece(board, newPosition, color)){
-                    break;
-                }
-
-                newPosition = new ChessPosition(newPosition.getRow() + directions[i][0], newPosition.getColumn() + directions[i][1]);
-            }
-        }
-
-        return moves;
+        return getMoveLoop(board, position, color, directions);
     }
 
     public Collection<ChessMove> getPawnMoves(ChessBoard board, ChessPosition startPosition, ChessGame.TeamColor color){
