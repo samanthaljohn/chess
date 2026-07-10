@@ -32,6 +32,13 @@ public class ChessPiece {
         PAWN
     }
 
+    public enum PromotionPieceType {
+        QUEEN,
+        BISHOP,
+        KNIGHT,
+        ROOK
+    }
+
     /**
      * @return Which team this chess piece belongs to
      */
@@ -212,10 +219,9 @@ public class ChessPiece {
             if (inBoundsMove(capture) && isEnemyPiece(board, capture, color)) {
                 if (promotionRow == row + dir) {
                     // add all promotion options
-                    for (PieceType piece : PieceType.values()) {
-                        if (piece != PieceType.PAWN && piece != PieceType.KING) {
-                            moves.add(new ChessMove(startPosition, capture, piece));
-                        }
+                    for (PromotionPieceType piece : PromotionPieceType.values()) {
+                        PieceType type = PieceType.valueOf(piece.name());
+                        moves.add(new ChessMove(startPosition, capture, type));
                     }
                 } else {
                     moves.add(new ChessMove(startPosition, capture, null));
