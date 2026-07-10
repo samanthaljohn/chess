@@ -336,8 +336,12 @@ public class ChessGame {
            }
            // marked things as moved
            if (type == ChessPiece.PieceType.KING) {
-               if (color == TeamColor.WHITE) wKingMoved = true;
-               else bKingMoved = true;
+               if (color == TeamColor.WHITE) {
+                   wKingMoved = true;
+               }
+               else {
+                   bKingMoved = true;
+               }
            }
            //check if we are moving from the starting position
            if (type == ChessPiece.PieceType.ROOK) {
