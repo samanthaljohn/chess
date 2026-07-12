@@ -30,24 +30,19 @@ public class MemoryDataAccess implements DataAccess {
     }
 
     @Override
-    public void clear() throws DataAccessException{
+    public void clear() {
         clearUserData();
         clearGameData();
         clearAuthData();
     }
 
     @Override
-    public void createUser(UserData userData) throws DataAccessException {
-        if (!users.containsKey(userData.username())){
-            users.put(userData.username(), userData);
-        }
-        else {
-            throw new AlreadyTakenException("Error: Username Already Taken");
-        }
+    public void createUser(UserData userData) {
+        users.put(userData.username(), userData);
     }
 
     @Override
-    public UserData getUser(String username) throws DataAccessException{
+    public UserData getUser(String username) {
         if (users.containsKey(username)){
             return users.get(username);
         }
@@ -57,7 +52,7 @@ public class MemoryDataAccess implements DataAccess {
     }
 
     @Override
-    public int createGame(String gameName) throws DataAccessException{
+    public int createGame(String gameName) {
         gameIDCounter += 1;
         GameData gameData = new GameData(gameIDCounter, null, null, gameName, new ChessGame());
         games.put(gameIDCounter, gameData);
@@ -65,7 +60,7 @@ public class MemoryDataAccess implements DataAccess {
     }
 
     @Override
-    public GameData getGame(int gameId) throws DataAccessException{
+    public GameData getGame(int gameId) {
         if (games.containsKey(gameId)){
             return games.get(gameId);
         }
@@ -75,32 +70,22 @@ public class MemoryDataAccess implements DataAccess {
     }
 
     @Override
-    public Collection<GameData> listGames() throws DataAccessException{
+    public Collection<GameData> listGames() {
         return games.values();
     }
 
     @Override
-    public void updateGame(GameData gameData) throws DataAccessException{
-        if (games.containsKey(gameData.gameID())){
-            games.put(gameData.gameID(), gameData);
-        }
-        else {
-            throw new DataAccessException("Error: not an existing game to update");
-        }
+    public void updateGame(GameData gameData){
+        games.put(gameData.gameID(), gameData);
     }
 
     @Override
-    public void createAuth(AuthData authData) throws DataAccessException{
-        if(!auths.containsKey(authData.authToken())){
-            auths.put(authData.authToken(), authData);
-        }
-        else {
-            throw new AlreadyTakenException("Error: Authorization already exists");
-        }
+    public void createAuth(AuthData authData){
+        auths.put(authData.authToken(), authData);
     }
 
     @Override
-    public AuthData getAuth(String authToken) throws DataAccessException{
+    public AuthData getAuth(String authToken) {
         if (auths.containsKey(authToken)){
             return auths.get(authToken);
         }
@@ -110,7 +95,7 @@ public class MemoryDataAccess implements DataAccess {
     }
 
     @Override
-    public void deleteAuth(String authToken) throws DataAccessException{
+    public void deleteAuth(String authToken) {
         auths.remove(authToken);
     }
 }
