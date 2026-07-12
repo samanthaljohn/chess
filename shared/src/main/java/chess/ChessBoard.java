@@ -13,7 +13,6 @@ public class ChessBoard {
     private ChessPiece[][] board;
 
     public ChessBoard() {
-
         this.board = new ChessPiece[8][8];
     }
 
