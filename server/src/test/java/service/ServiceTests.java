@@ -4,14 +4,18 @@ import dataaccess.AlreadyTakenException;
 import dataaccess.DataAccessException;
 import dataaccess.MemoryDataAccess;
 import dataaccess.UnauthorizedException;
+
 import model.AuthData;
+import model.PublicGameData;
 import model.UserData;
-import org.junit.jupiter.api.Test;
+
 import request.LoginRequest;
 import request.RegisterRequest;
+import result.ListGamesResult;
 import result.LoginResult;
 import result.RegisterResult;
 
+import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ServiceTests {
@@ -118,5 +122,41 @@ class ServiceTests {
         String fakeAuthToken = "fakeAuth";
 
         assertThrows(UnauthorizedException.class, () -> userService.logout(fakeAuthToken));
+    }
+
+    @Test
+    void listGamesPositive() throws DataAccessException{
+        MemoryDataAccess dataAccess = new MemoryDataAccess();
+        UserService userService = new UserService(dataAccess);
+        GameService gameService = new GameService(dataAccess);
+
+        RegisterRequest registerRequest = new RegisterRequest("username", "password", "email");
+        userService.register(registerRequest);
+        LoginRequest loginRequest = new LoginRequest("username", "password");
+        LoginResult loginResult = userService.login(loginRequest);
+        String authToken = loginResult.authToken();
+
+        int gameID1 = dataAccess.createGame("game1");
+        int gameID2 = dataAccess.createGame("game2");
+
+        PublicGameData game1 = new PublicGameData(gameID1, null, null, "game1");
+        PublicGameData game2 = new PublicGameData(gameID2, null, null, "game2");
+
+        ListGamesResult listGamesResult = gameService.listGames(authToken);
+
+        assertEquals(2, listGamesResult.games().size());
+        assertTrue(listGamesResult.games().contains(game1));
+        assertTrue(listGamesResult.games().contains(game2));
+
+    }
+
+    @Test
+    void listGamesNegative() throws DataAccessException {
+        MemoryDataAccess dataAccess = new MemoryDataAccess();
+        GameService gameService = new GameService(dataAccess);
+
+        String fakeAuthToken = "fakeAuth";
+
+        assertThrows(UnauthorizedException.class, () -> gameService.listGames(fakeAuthToken));
     }
 }
