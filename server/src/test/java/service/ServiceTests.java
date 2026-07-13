@@ -92,4 +92,31 @@ class ServiceTests {
 
         assertThrows(UnauthorizedException.class, () -> userService.login(loginRequest));
     }
+
+    @Test
+    void logoutPositive() throws DataAccessException{
+        MemoryDataAccess dataAccess = new MemoryDataAccess();
+        UserService userService = new UserService(dataAccess);
+
+        RegisterRequest registerRequest = new RegisterRequest("username", "password", "email@email.com");
+        userService.register(registerRequest);
+
+        LoginRequest loginRequest = new LoginRequest("username", "password");
+        LoginResult loginResult = userService.login(loginRequest);
+        String authToken = loginResult.authToken();
+
+        userService.logout(authToken);
+
+        assertNull(dataAccess.getAuth(authToken));
+    }
+
+    @Test
+    void logoutNegative() throws DataAccessException{
+        MemoryDataAccess dataAccess = new MemoryDataAccess();
+        UserService userService = new UserService(dataAccess);
+
+        String fakeAuthToken = "fakeAuth";
+
+        assertThrows(UnauthorizedException.class, () -> userService.logout(fakeAuthToken));
+    }
 }
