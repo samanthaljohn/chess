@@ -72,4 +72,22 @@ public class UserHandler {
             context.result(new Gson().toJson(Map.of("message", "Error: " + e.getMessage())));
         }
     }
+
+    public void logout(Context context){
+        String authToken = context.header("authorization");
+
+        try {
+            userService.logout(authToken);
+            context.contentType("application/json");
+            context.result(new Gson().toJson(Map.of()));
+        } catch (UnauthorizedException e){
+            context.status(401);
+            context.contentType("application/json");
+            context.result(new Gson().toJson(Map.of("message", "Error: " + e.getMessage())));
+        } catch (DataAccessException e){
+            context.status(500);
+            context.contentType("application/json");
+            context.result(new Gson().toJson(Map.of("message", "Error: " + e.getMessage())));
+        }
+    }
 }
