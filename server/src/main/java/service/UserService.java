@@ -25,14 +25,14 @@ public class UserService {
         String username = registerRequest.username(), password = registerRequest.password(), email = registerRequest.email();
 
         if (dataAccess.getUser(username) != null){
-            throw new AlreadyTakenException("Error: already taken");
+            throw new AlreadyTakenException("already taken");
         }
         UserData userData = new UserData(username, password, email);
         dataAccess.createUser(userData);
 
         String authToken = generateAuthToken();
         if (dataAccess.getAuth(authToken) != null){
-            throw new AlreadyTakenException("Error: already taken");
+            throw new AlreadyTakenException("already taken");
         }
         AuthData authData = new AuthData(authToken, username);
         dataAccess.createAuth(authData);
