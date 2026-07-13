@@ -3,9 +3,12 @@ package service;
 import dataaccess.AlreadyTakenException;
 import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
+import dataaccess.UnauthorizedException;
 import model.AuthData;
 import model.UserData;
+import request.LoginRequest;
 import request.RegisterRequest;
+import result.LoginResult;
 import result.RegisterResult;
 
 import java.util.UUID;
@@ -31,9 +34,6 @@ public class UserService {
         dataAccess.createUser(userData);
 
         String authToken = generateAuthToken();
-        if (dataAccess.getAuth(authToken) != null){
-            throw new AlreadyTakenException("already taken");
-        }
         AuthData authData = new AuthData(authToken, username);
         dataAccess.createAuth(authData);
 
@@ -41,7 +41,21 @@ public class UserService {
         return registerResult;
     }
 
-//    public LoginResult login(LoginRequest loginRequest) {}
+    public LoginResult login(LoginRequest loginRequest) throws DataAccessException{
+        String username = loginRequest.username(), password = loginRequest.password();
+        UserData user = dataAccess.getUser(username);
+        if (user == null || user.password().equals(password)){
+            throw new UnauthorizedException("unauthorized");
+        }
+
+        String authToken = generateAuthToken();
+        AuthData authData = new AuthData(authToken, username);
+        dataAccess.createAuth(authData);
+
+        LoginResult loginResult = new LoginResult(username, authToken);
+        return loginResult;
+    }
+
 //    public void logout(LogoutRequest logoutRequest) {}
 
 }
