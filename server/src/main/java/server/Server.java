@@ -1,10 +1,15 @@
 package server;
 
 import dataaccess.MemoryDataAccess;
+
 import handler.ClearHandler;
+import handler.GameHandler;
 import handler.UserHandler;
+
 import io.javalin.*;
+
 import service.ClearService;
+import service.GameService;
 import service.UserService;
 
 public class Server {
@@ -20,11 +25,15 @@ public class Server {
         UserService userService = new UserService(dataAccess);
         UserHandler userHandler = new UserHandler(userService);
 
+        GameService gameService = new GameService(dataAccess);
+        GameHandler gameHandler = new GameHandler(gameService);
+
         javalin = Javalin.create(config -> config.staticFiles.add("web"))
         .delete("/db", clearHandler::clear)
         .post("/user", userHandler::register)
         .post("/session", userHandler::login)
-        .delete("/session", userHandler::logout);
+        .delete("/session", userHandler::logout)
+        .get("/game", gameHandler::listGames);
     }
 
     public int run(int desiredPort) {
