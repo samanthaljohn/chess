@@ -44,7 +44,7 @@ public class UserService {
     public LoginResult login(LoginRequest loginRequest) throws DataAccessException{
         String username = loginRequest.username(), password = loginRequest.password();
         UserData user = dataAccess.getUser(username);
-        if (user == null || user.password().equals(password)){
+        if (user == null || !user.password().equals(password)){
             throw new UnauthorizedException("unauthorized");
         }
 
