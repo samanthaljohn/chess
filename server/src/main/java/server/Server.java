@@ -33,7 +33,8 @@ public class Server {
         .post("/user", userHandler::register)
         .post("/session", userHandler::login)
         .delete("/session", userHandler::logout)
-        .get("/game", gameHandler::listGames);
+        .get("/game", gameHandler::listGames)
+        .post("/game", gameHandler::createGame);
     }
 
     public int run(int desiredPort) {
