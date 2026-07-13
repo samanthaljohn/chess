@@ -27,7 +27,7 @@ public class UserHandler {
         if (registerRequest.username() == null || registerRequest.password() == null || registerRequest.email() == null) {
             context.status(400);
             context.contentType("application/json");
-            context.result(new Gson().toJson(Map.of("message", "Error: bad RegisterRequest")));
+            context.result(new Gson().toJson(Map.of("message", "Error: bad request")));
             return;
         }
 
@@ -53,7 +53,7 @@ public class UserHandler {
         if (loginRequest.username() == null || loginRequest.password() == null){
             context.status(400);
             context.contentType("application/json");
-            context.result(new Gson().toJson(Map.of("message", "Error: bad LoginRequest")));
+            context.result(new Gson().toJson(Map.of("message", "Error: bad request")));
             return;
         }
 
