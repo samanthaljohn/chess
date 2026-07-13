@@ -21,7 +21,7 @@ public class ClearHandler {
             context.result(new Gson().toJson(Map.of()));
         } catch (DataAccessException e){
             context.contentType("application/json");
-            context.contentType("application/json");
+            context.status(500);
             context.result(new Gson().toJson(Map.of("message", "Error: " + e.getMessage())));
         }
     }
