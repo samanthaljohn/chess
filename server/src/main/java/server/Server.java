@@ -23,7 +23,8 @@ public class Server {
         javalin = Javalin.create(config -> config.staticFiles.add("web"))
         .delete("/db", clearHandler::clear)
         .post("/user", userHandler::register)
-        .post("/session", userHandler::login);
+        .post("/session", userHandler::login)
+        .delete("/session", userHandler::logout);
     }
 
     public int run(int desiredPort) {
