@@ -1,15 +1,15 @@
 package service;
 
-import dataaccess.DataAccess;
-import dataaccess.DataAccessException;
-import dataaccess.UnauthorizedException;
+import dataaccess.*;
 import model.AuthData;
 import model.GameData;
 import model.PublicGameData;
 import request.CreateGameRequest;
+import request.JoinGameRequest;
 import result.CreateGameResult;
 import result.ListGamesResult;
 
+import javax.xml.crypto.Data;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -66,5 +66,34 @@ public class GameService {
         return createGameResult;
     }
 
-    //update game
+    public void joinGame(String authToken, JoinGameRequest joinGameRequest) throws DataAccessException {
+        AuthData auth = dataAccess.getAuth(authToken);
+
+        if (auth == null){
+            throw new UnauthorizedException("unauthorized");
+        }
+
+        int gameID = joinGameRequest.gameID();
+        GameData game = dataAccess.getGame(gameID);
+        if (game == null){
+            throw new BadRequestException("bad request");
+        }
+
+        String playerColor = joinGameRequest.playerColor();
+        String whiteUsername = game.whiteUsername();
+        String blackUsername = game.blackUsername();
+
+        if ((playerColor.equals("WHITE") && whiteUsername != null) || (playerColor.equals("BLACK") && blackUsername != null)){
+            throw new AlreadyTakenException("already taken");
+        }
+
+        String username = auth.username();
+        if (playerColor.equals("WHITE")){
+            GameData newGame = new GameData(gameID, username, game.blackUsername(), game.gameName(), game.game());
+            dataAccess.updateGame(newGame);
+        } else {
+            GameData newGame = new GameData(gameID, game.whiteUsername(), username, game.gameName(), game.game());
+            dataAccess.updateGame(newGame);
+        }
+    }
 }
