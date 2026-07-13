@@ -4,8 +4,10 @@ import dataaccess.AlreadyTakenException;
 import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
 import dataaccess.UnauthorizedException;
+
 import model.AuthData;
 import model.UserData;
+
 import request.LoginRequest;
 import request.RegisterRequest;
 import result.LoginResult;
