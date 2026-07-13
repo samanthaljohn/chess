@@ -6,11 +6,12 @@ import dataaccess.UnauthorizedException;
 import model.AuthData;
 import model.GameData;
 import model.PublicGameData;
+import request.CreateGameRequest;
+import result.CreateGameResult;
 import result.ListGamesResult;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 public class GameService {
     private final DataAccess dataAccess;
@@ -51,7 +52,19 @@ public class GameService {
         return listGamesResult;
     }
 
-    //join game
+    public CreateGameResult createGame(String authToken, CreateGameRequest createGameRequest) throws DataAccessException{
+        AuthData auth = dataAccess.getAuth(authToken);
+
+        if (auth == null){
+            throw new UnauthorizedException("unauthorized");
+        }
+
+        String gameName = createGameRequest.gameName();
+        int gameID = dataAccess.createGame(gameName);
+        CreateGameResult createGameResult = new CreateGameResult(gameID);
+
+        return createGameResult;
+    }
 
     //update game
 }
