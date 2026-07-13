@@ -1,10 +1,7 @@
 package service;
 
 import chess.ChessGame;
-import dataaccess.AlreadyTakenException;
-import dataaccess.DataAccessException;
-import dataaccess.MemoryDataAccess;
-import dataaccess.UnauthorizedException;
+import dataaccess.*;
 
 import model.AuthData;
 import model.GameData;
@@ -12,6 +9,7 @@ import model.PublicGameData;
 import model.UserData;
 
 import request.CreateGameRequest;
+import request.JoinGameRequest;
 import request.LoginRequest;
 import request.RegisterRequest;
 import result.CreateGameResult;
@@ -194,5 +192,47 @@ class ServiceTests {
         CreateGameRequest createGameRequest = new CreateGameRequest("myGame");
 
         assertThrows(UnauthorizedException.class, () -> gameService.createGame(fakeAuthToken, createGameRequest));
+    }
+
+    @Test
+    void joinGamePositive() throws DataAccessException {
+        MemoryDataAccess dataAccess = new MemoryDataAccess();
+        UserService userService = new UserService(dataAccess);
+        GameService gameService = new GameService(dataAccess);
+
+        RegisterRequest registerRequest = new RegisterRequest("username", "password", "email");
+        userService.register(registerRequest);
+        LoginRequest loginRequest = new LoginRequest("username", "password");
+        LoginResult loginResult = userService.login(loginRequest);
+        String authToken = loginResult.authToken();
+
+        CreateGameRequest createGameRequest = new CreateGameRequest("myGame");
+        CreateGameResult createGameResult = gameService.createGame(authToken, createGameRequest);
+        int gameID = createGameResult.gameID();
+
+        JoinGameRequest joinGameRequest = new JoinGameRequest("WHITE", gameID);
+        gameService.joinGame(authToken, joinGameRequest);
+
+        GameData game = dataAccess.getGame(gameID);
+
+        assertEquals("username", game.whiteUsername());
+        assertEquals(null, game.blackUsername());
+    }
+
+    @Test
+    void joinGameNegative() throws DataAccessException{
+        MemoryDataAccess dataAccess = new MemoryDataAccess();
+        UserService userService = new UserService(dataAccess);
+        GameService gameService = new GameService(dataAccess);
+
+        RegisterRequest registerRequest = new RegisterRequest("username", "password", "email");
+        userService.register(registerRequest);
+        LoginRequest loginRequest = new LoginRequest("username", "password");
+        LoginResult loginResult = userService.login(loginRequest);
+        String authToken = loginResult.authToken();
+
+        JoinGameRequest joinGameRequest = new JoinGameRequest("WHITE", 1);
+
+        assertThrows(BadRequestException.class, () -> gameService.joinGame(authToken, joinGameRequest));
     }
 }
