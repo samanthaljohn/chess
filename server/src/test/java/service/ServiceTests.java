@@ -1,16 +1,20 @@
 package service;
 
+import chess.ChessGame;
 import dataaccess.AlreadyTakenException;
 import dataaccess.DataAccessException;
 import dataaccess.MemoryDataAccess;
 import dataaccess.UnauthorizedException;
 
 import model.AuthData;
+import model.GameData;
 import model.PublicGameData;
 import model.UserData;
 
+import request.CreateGameRequest;
 import request.LoginRequest;
 import request.RegisterRequest;
+import result.CreateGameResult;
 import result.ListGamesResult;
 import result.LoginResult;
 import result.RegisterResult;
@@ -158,5 +162,37 @@ class ServiceTests {
         String fakeAuthToken = "fakeAuth";
 
         assertThrows(UnauthorizedException.class, () -> gameService.listGames(fakeAuthToken));
+    }
+
+    @Test
+    void createGamePositive() throws DataAccessException {
+        MemoryDataAccess dataAccess = new MemoryDataAccess();
+        UserService userService = new UserService(dataAccess);
+        GameService gameService = new GameService(dataAccess);
+
+        RegisterRequest registerRequest = new RegisterRequest("username", "password", "email");
+        userService.register(registerRequest);
+        LoginRequest loginRequest = new LoginRequest("username", "password");
+        LoginResult loginResult = userService.login(loginRequest);
+        String authToken = loginResult.authToken();
+
+        CreateGameRequest createGameRequest = new CreateGameRequest("myGame");
+        CreateGameResult createGameResult = gameService.createGame(authToken, createGameRequest);
+        int gameID = createGameResult.gameID();
+        GameData game = new GameData(gameID, null, null, "myGame", new ChessGame());
+
+        assertEquals(1, gameID);
+        assertEquals(game, dataAccess.getGame(gameID));
+    }
+
+    @Test
+    void createGameNegative() throws DataAccessException{
+        MemoryDataAccess dataAccess = new MemoryDataAccess();
+        GameService gameService = new GameService(dataAccess);
+
+        String fakeAuthToken = "fakeAuth";
+        CreateGameRequest createGameRequest = new CreateGameRequest("myGame");
+
+        assertThrows(UnauthorizedException.class, () -> gameService.createGame(fakeAuthToken, createGameRequest));
     }
 }
