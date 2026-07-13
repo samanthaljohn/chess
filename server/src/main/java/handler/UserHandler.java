@@ -1,14 +1,17 @@
 package handler;
 
 import com.google.gson.Gson;
+import io.javalin.http.Context;
+
 import dataaccess.AlreadyTakenException;
 import dataaccess.UnauthorizedException;
-import io.javalin.http.Context;
 import dataaccess.DataAccessException;
+
 import request.LoginRequest;
 import request.RegisterRequest;
 import result.LoginResult;
 import result.RegisterResult;
+
 import service.UserService;
 
 import java.util.Map;
