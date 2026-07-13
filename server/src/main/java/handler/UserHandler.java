@@ -11,7 +11,6 @@ import result.LoginResult;
 import result.RegisterResult;
 import service.UserService;
 
-import javax.xml.crypto.Data;
 import java.util.Map;
 
 public class UserHandler {
