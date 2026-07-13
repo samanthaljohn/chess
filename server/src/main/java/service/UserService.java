@@ -56,6 +56,14 @@ public class UserService {
         return loginResult;
     }
 
-//    public void logout(LogoutRequest logoutRequest) {}
+    public void logout(String authToken) throws DataAccessException {
+        AuthData auth = dataAccess.getAuth(authToken);
+
+        if (auth == null) {
+            throw new UnauthorizedException("unauthorized");
+        }
+
+        dataAccess.deleteAuth(authToken);
+    }
 
 }
