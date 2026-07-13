@@ -3,10 +3,13 @@ package service;
 import dataaccess.AlreadyTakenException;
 import dataaccess.DataAccessException;
 import dataaccess.MemoryDataAccess;
+import dataaccess.UnauthorizedException;
 import model.AuthData;
 import model.UserData;
 import org.junit.jupiter.api.Test;
+import request.LoginRequest;
 import request.RegisterRequest;
+import result.LoginResult;
 import result.RegisterResult;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -59,5 +62,34 @@ class ServiceTests {
 
         assertThrows(AlreadyTakenException.class, () -> userService.register(newRequest));
         assertEquals(userOneData, dataAccess.getUser("username"));
+    }
+
+    @Test
+    void loginPositive() throws DataAccessException{
+        MemoryDataAccess dataAccess = new MemoryDataAccess();
+        UserService userService = new UserService(dataAccess);
+
+        RegisterRequest request = new RegisterRequest("username", "password", "email@email.com");
+        userService.register(request);
+
+        LoginRequest loginRequest = new LoginRequest("username", "password");
+        LoginResult result = userService.login(loginRequest);
+
+        assertEquals("username", result.username());
+        assertNotNull(result.authToken());
+        assertNotNull(dataAccess.getAuth(result.authToken()));
+    }
+
+    @Test
+    void loginNegative() throws DataAccessException{
+        MemoryDataAccess dataAccess = new MemoryDataAccess();
+        UserService userService = new UserService(dataAccess);
+
+        RegisterRequest registerRequest = new RegisterRequest("username", "password", "email@email.com");
+        userService.register(registerRequest);
+
+        LoginRequest loginRequest = new LoginRequest("username", "incorrect password");
+
+        assertThrows(UnauthorizedException.class, () -> userService.login(loginRequest));
     }
 }
