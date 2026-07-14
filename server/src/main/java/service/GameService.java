@@ -9,7 +9,6 @@ import request.JoinGameRequest;
 import result.CreateGameResult;
 import result.ListGamesResult;
 
-import javax.xml.crypto.Data;
 import java.util.ArrayList;
 import java.util.Collection;
 
