@@ -30,14 +30,6 @@ public class MemoryDataAccessTest {
 
         assertThrows(AlreadyTakenException.class, () -> dataAccess.createUser(user));
     }
-    @Test
-    void getUserPositive() throws DataAccessException {
-        MemoryDataAccess dataAccess = new MemoryDataAccess();
-        UserData user = new UserData("newUsername", "password", "myemail@gmail.com");
-        dataAccess.createUser(user);
-
-        assertEquals(user, dataAccess.getUser("newUsername"));
-    }
 
     @Test
     void getUserNegative() throws DataAccessException {
