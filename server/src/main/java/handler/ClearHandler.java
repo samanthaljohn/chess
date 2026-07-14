@@ -7,7 +7,7 @@ import service.ClearService;
 
 import java.util.Map;
 
-public class ClearHandler {
+public class ClearHandler extends ErrorHandler{
     private final ClearService clearService;
 
     public ClearHandler(ClearService clearService){
@@ -17,12 +17,9 @@ public class ClearHandler {
     public void clear(Context context){
         try{
             clearService.clear();
-            context.contentType("application/json");
-            context.result(new Gson().toJson(Map.of()));
+            context.json(Map.of());
         } catch (DataAccessException e){
-            context.contentType("application/json");
-            context.status(500);
-            context.result(new Gson().toJson(Map.of("message", "Error: " + e.getMessage())));
+            handleError(context, 500, "Error: " + e.getMessage());
         }
     }
 }
