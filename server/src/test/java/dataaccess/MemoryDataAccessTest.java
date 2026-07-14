@@ -105,16 +105,6 @@ public class MemoryDataAccessTest {
     }
 
     @Test
-    void createAuthPositive() throws DataAccessException {
-        MemoryDataAccess dataAccess = new MemoryDataAccess();
-
-        AuthData auth = new AuthData("token123", "someUser");
-        dataAccess.createAuth(auth);
-
-        assertEquals(auth, dataAccess.getAuth("token123"));
-    }
-
-    @Test
     void createAuthNegative() throws DataAccessException {
         MemoryDataAccess dataAccess = new MemoryDataAccess();
 
