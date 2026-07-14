@@ -16,7 +16,7 @@ import service.UserService;
 
 import java.util.Map;
 
-public class UserHandler {
+public class UserHandler extends ErrorHandler {
     private final UserService userService;
 
     public UserHandler(UserService userService){
@@ -27,25 +27,18 @@ public class UserHandler {
         RegisterRequest registerRequest = new Gson().fromJson(context.body(), RegisterRequest.class);
 
         if (registerRequest.username() == null || registerRequest.password() == null || registerRequest.email() == null) {
-            context.status(400);
-            context.contentType("application/json");
-            context.result(new Gson().toJson(Map.of("message", "Error: bad request")));
+            handleError(context, 400, "Error: bad request");
             return;
         }
 
         try{
             RegisterResult result = userService.register(registerRequest);
             context.status(200);
-            context.contentType("application/json");
-            context.result(new Gson().toJson(result));
+            context.json(result);
         } catch (AlreadyTakenException e){
-            context.status(403);
-            context.contentType("application/json");
-            context.result(new Gson().toJson(Map.of("message", "Error: " + e.getMessage())));
+            handleError(context, 403, "Error: " + e.getMessage());
         } catch (DataAccessException e) {
-            context.status(500);
-            context.contentType("application/json");
-            context.result(new Gson().toJson(Map.of("message", "Error: " + e.getMessage())));
+            handleError(context, 500, "Error: " + e.getMessage());
         }
     }
 
@@ -53,25 +46,18 @@ public class UserHandler {
         LoginRequest loginRequest = new Gson().fromJson(context.body(), LoginRequest.class);
 
         if (loginRequest.username() == null || loginRequest.password() == null){
-            context.status(400);
-            context.contentType("application/json");
-            context.result(new Gson().toJson(Map.of("message", "Error: bad request")));
+            handleError(context, 400, "Error: bad request");
             return;
         }
 
         try {
             LoginResult result = userService.login(loginRequest);
             context.status(200);
-            context.contentType("application/json");
-            context.result(new Gson().toJson(result));
+            context.json(result);
         } catch (UnauthorizedException e){
-            context.status(401);
-            context.contentType("application/json");
-            context.result(new Gson().toJson(Map.of("message", "Error: " + e.getMessage())));
+            handleError(context, 401, "Error: " + e.getMessage());
         } catch (DataAccessException e) {
-            context.status(500);
-            context.contentType("application/json");
-            context.result(new Gson().toJson(Map.of("message", "Error: " + e.getMessage())));
+            handleError(context, 500, "Error: " + e.getMessage());
         }
     }
 
@@ -83,13 +69,9 @@ public class UserHandler {
             context.contentType("application/json");
             context.result(new Gson().toJson(Map.of()));
         } catch (UnauthorizedException e){
-            context.status(401);
-            context.contentType("application/json");
-            context.result(new Gson().toJson(Map.of("message", "Error: " + e.getMessage())));
+            handleError(context, 401, "Error: " + e.getMessage());
         } catch (DataAccessException e){
-            context.status(500);
-            context.contentType("application/json");
-            context.result(new Gson().toJson(Map.of("message", "Error: " + e.getMessage())));
+            handleError(context, 500, "Error: " + e.getMessage());
         }
     }
 }

@@ -22,7 +22,7 @@ import service.GameService;
 import javax.xml.crypto.Data;
 import java.util.Map;
 
-public class GameHandler {
+public class GameHandler extends ErrorHandler{
     private final GameService gameService;
 
     public GameHandler(GameService gameService){
@@ -35,16 +35,11 @@ public class GameHandler {
         try {
             ListGamesResult listGamesResult = gameService.listGames(authToken);
             context.status(200);
-            context.contentType("application/json");
-            context.result(new Gson().toJson(listGamesResult));
+            context.json(listGamesResult);
         } catch (UnauthorizedException e){
-            context.status(401);
-            context.contentType("application/json");
-            context.result(new Gson().toJson(Map.of("message", "Error: " + e.getMessage())));
+            handleError(context, 401, "Error: " + e.getMessage());
         } catch (DataAccessException e){
-            context.status(500);
-            context.contentType("application/json");
-            context.result(new Gson().toJson(Map.of("message", "Error: " + e.getMessage())));
+            handleError(context, 500, "Error: " + e.getMessage());
         }
     }
 
@@ -53,25 +48,18 @@ public class GameHandler {
         CreateGameRequest createGameRequest = new Gson().fromJson(context.body(), CreateGameRequest.class);
 
         if (createGameRequest.gameName() == null){
-            context.status(400);
-            context.contentType("application/json");
-            context.result(new Gson().toJson(Map.of("message", "Error: bad request")));
+            handleError(context, 400, "Error: bad request");
             return;
         }
 
         try {
             CreateGameResult createGameResult = gameService.createGame(authToken, createGameRequest);
             context.status(200);
-            context.contentType("application/json");
-            context.result(new Gson().toJson(createGameResult));
+            context.json(createGameResult);
         } catch (UnauthorizedException e){
-            context.status(401);
-            context.contentType("application/json");
-            context.result(new Gson().toJson(Map.of("message", "Error: " + e.getMessage())));
+            handleError(context, 401, "Error: " + e.getMessage());
         } catch (DataAccessException e){
-            context.status(500);
-            context.contentType("application/json");
-            context.result(new Gson().toJson(Map.of("message", "Error: " + e.getMessage())));
+            handleError(context, 500, "Error: " + e.getMessage());
         }
     }
 
@@ -82,33 +70,22 @@ public class GameHandler {
         String color = joinGameRequest.playerColor();
 
         if(color == null || (!color.equals("WHITE") && !color.equals("BLACK")) || joinGameRequest.gameID() == 0) {
-            context.status(400);
-            context.contentType("application/json");
-            context.result(new Gson().toJson(Map.of("message", "Error: bad request")));
+            handleError(context, 400, "Error: bad request");
             return;
         }
 
         try {
             gameService.joinGame(authToken, joinGameRequest);
             context.status(200);
-            context.contentType("application/json");
-            context.result(new Gson().toJson(Map.of()));
+            context.json(Map.of());
         } catch (BadRequestException e){
-            context.status(400);
-            context.contentType("application/json");
-            context.result(new Gson().toJson(Map.of("message", "Error: " + e.getMessage())));
+            handleError(context, 400, "Error: " + e.getMessage());
         } catch (UnauthorizedException e){
-            context.status(401);
-            context.contentType("application/json");
-            context.result(new Gson().toJson(Map.of("message", "Error: " + e.getMessage())));
+            handleError(context, 401, "Error: " + e.getMessage());
         } catch (AlreadyTakenException e){
-            context.status(403);
-            context.contentType("application/json");
-            context.result(new Gson().toJson(Map.of("message", "Error: " + e.getMessage())));
+            handleError(context, 403, "Error: " + e.getMessage());
         } catch (DataAccessException e){
-            context.status(500);
-            context.contentType("application/json");
-            context.result(new Gson().toJson(Map.of("message", "Error: " + e.getMessage())));
+            handleError(context, 500, "Error: " + e.getMessage());
         }
     }
 }
