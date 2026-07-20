@@ -3,6 +3,7 @@ package dataaccess;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
+import org.mindrot.jbcrypt.BCrypt;
 
 import java.sql.SQLException;
 import java.util.Collection;
@@ -54,9 +55,40 @@ public class MySqlDataAccess implements DataAccess{
         }
     }
 
-    public void clear() throws DataAccessException{}
+    public void clear() throws DataAccessException{
+        try (var conn = DatabaseManager.getConnection()){
+            try (var clearUserData = conn.prepareStatement("TRUNCATE TABLE userData")){
+                clearUserData.executeUpdate();
+            }
+            try (var clearAuthData = conn.prepareStatement("TRUNCATE TABLE authData")){
+                clearAuthData.executeUpdate();
+            }
+            try (var clearGameData = conn.prepareStatement("TRUNCATE TABLE gameData")){
+                clearGameData.executeUpdate();
+            }
+        } catch (SQLException e){
+            throw new DataAccessException(e.getMessage());
+        }
+    }
 
-    public void createUser(UserData userData) throws DataAccessException{}
+    public void createUser(UserData userData) throws DataAccessException{
+        try (var conn = DatabaseManager.getConnection()){
+            String username = userData.username();
+            String password = userData.password();
+            String email = userData.email();
+            try (var preparedStatement = conn.prepareStatement("INSERT INTO userData (username, password, email) VALUES(?, ?, ?)")) {
+                preparedStatement.setString(1, username);
+                String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
+                preparedStatement.setString(2, hashedPassword);
+                preparedStatement.setString(3, email);
+
+                preparedStatement.executeUpdate();
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException(e.getMessage());
+        }
+    }
+
     public UserData getUser(String username) throws DataAccessException{
         return null;
     }
