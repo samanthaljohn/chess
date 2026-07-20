@@ -55,6 +55,7 @@ public class MySqlDataAccess implements DataAccess{
         }
     }
 
+    @Override
     public void clear() throws DataAccessException{
         try (var conn = DatabaseManager.getConnection()){
             try (var clearUserData = conn.prepareStatement("TRUNCATE TABLE userData")){
@@ -71,31 +72,34 @@ public class MySqlDataAccess implements DataAccess{
         }
     }
 
+    @Override
     public void createUser(UserData userData) throws DataAccessException{
         try (var conn = DatabaseManager.getConnection()){
-            String username = userData.username();
-            String password = userData.password();
-            String email = userData.email();
-            try (var preparedStatement = conn.prepareStatement("INSERT INTO userData (username, password, email) VALUES(?, ?, ?)")) {
-                preparedStatement.setString(1, username);
-                String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
-                preparedStatement.setString(2, hashedPassword);
-                preparedStatement.setString(3, email);
+            try (var createUserStatement = conn.prepareStatement("INSERT INTO userData (username, password, email) VALUES(?, ?, ?)")) {
+                String username = userData.username();
+                String password = userData.password();
+                String email = userData.email();
 
-                preparedStatement.executeUpdate();
+                createUserStatement.setString(1, username);
+                String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
+                createUserStatement.setString(2, hashedPassword);
+                createUserStatement.setString(3, email);
+
+                createUserStatement.executeUpdate();
             }
         } catch (SQLException e) {
             throw new DataAccessException(e.getMessage());
         }
     }
 
+    @Override
     public UserData getUser(String username) throws DataAccessException{
         try (var conn = DatabaseManager.getConnection()){
             try (var getUserStatement = conn.prepareStatement("SELECT username, password, email FROM userData WHERE username = ?")){
                 getUserStatement.setString(1, username);
-                try (var results = getUserStatement.executeQuery()){
-                    if (results.next()){
-                        return new UserData(username, results.getString("password"), results.getString("email"));
+                try (var result = getUserStatement.executeQuery()){
+                    if (result.next()){
+                        return new UserData(username, result.getString("password"), results.getString("email"));
                     }
                     else {
                         return null;
@@ -107,20 +111,65 @@ public class MySqlDataAccess implements DataAccess{
         }
     }
 
+    @Override
     public int createGame(String gameName) throws DataAccessException{
         return 0;
     }
+    @Override
     public GameData getGame(int gameId) throws DataAccessException{
         return null;
     }
+    @Override
     public Collection<GameData> listGames() throws DataAccessException{
         return null;
     }
+    @Override
     public void updateGame(GameData gameData) throws DataAccessException{}
 
-    public void createAuth(AuthData authData) throws DataAccessException{}
-    public AuthData getAuth(String authToken) throws DataAccessException{
-        return null;
+    @Override
+    public void createAuth(AuthData authData) throws DataAccessException{
+        try (var conn = DatabaseManager.getConnection()){
+            try (var createAuthStatement = conn.prepareStatement("INSERT INTO authData (authToken, username) VALUES(?, ?)")){
+                String authToken = authData.authToken();
+                String username = authData.username();
+
+                createAuthStatement.setString(1, authToken);
+                createAuthStatement.setString(2, username);
+
+                createAuthStatement.executeUpdate();
+            }
+        } catch (SQLException e){
+            throw new DataAccessException(e.getMessage());
+        }
     }
-    public void deleteAuth(String authToken) throws DataAccessException{}
+
+    @Override
+    public AuthData getAuth(String authToken) throws DataAccessException{
+        try (var conn = DatabaseManager.getConnection()){
+            try (var getAuthStatement = conn.prepareStatement("SELECT authToken, username FROM authData WHERE authToken = ?")){
+                getAuthStatement.setString(1, authToken);
+                try (var result = getAuthStatement.executeQuery()) {
+                    if (result.next()){
+                        return new AuthData(authToken, result.getString("username"));
+                    }
+                    else {
+                        return null;
+                    }
+                }
+            }
+        } catch (SQLException e){
+            throw new DataAccessException(e.getMessage());
+        }
+    }
+    @Override
+    public void deleteAuth(String authToken) throws DataAccessException{
+        try (var conn = DatabaseManager.getConnection()){
+            try (var deleteAuthStatement = conn.prepareStatement("DELETE FROM authData WHERE authToken = ?")){
+                deleteAuthStatement.setString(1, authToken);
+                deleteAuthStatement.executeUpdate();
+            }
+        } catch (SQLException e){
+            throw new DataAccessException(e.getMessage());
+        }
+    }
 }
