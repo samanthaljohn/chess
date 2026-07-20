@@ -194,18 +194,4 @@ public class DataAccessTest {
 
         assertDoesNotThrow(() -> dataAccess.deleteAuth("nonExistentToken"));
     }
-
-//    @Test
-//    void clearPositive() throws DataAccessException {
-//        MemoryDataAccess dataAccess = new MemoryDataAccess();
-//        dataAccess.createUser(new UserData("user", "pass", "email@email.com"));
-//        dataAccess.createGame("someGame");
-//        dataAccess.createAuth(new AuthData("token123", "user"));
-//
-//        dataAccess.clear();
-//
-//        assertNull(dataAccess.getUser("user"));
-//        assertTrue(dataAccess.listGames().isEmpty());
-//        assertNull(dataAccess.getAuth("token123"));
-//    }
 }
