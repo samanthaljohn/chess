@@ -90,7 +90,21 @@ public class MySqlDataAccess implements DataAccess{
     }
 
     public UserData getUser(String username) throws DataAccessException{
-        return null;
+        try (var conn = DatabaseManager.getConnection()){
+            try (var getUserStatement = conn.prepareStatement("SELECT username, password, email FROM userData WHERE username = ?")){
+                getUserStatement.setString(1, username);
+                try (var results = getUserStatement.executeQuery()){
+                    if (results.next()){
+                        return new UserData(username, results.getString("password"), results.getString("email"));
+                    }
+                    else {
+                        return null;
+                    }
+                }
+            }
+        } catch (SQLException e){
+            throw new DataAccessException(e.getMessage());
+        }
     }
 
     public int createGame(String gameName) throws DataAccessException{
