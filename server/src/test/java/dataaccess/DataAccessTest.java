@@ -138,31 +138,33 @@ public class DataAccessTest {
 //        assertThrows(DataAccessException.class, () -> dataAccess.updateGame(fakeGame));
 //    }
 //
-//    @Test
-//    void createAuthNegative() throws DataAccessException {
-//        MemoryDataAccess dataAccess = new MemoryDataAccess();
-//
-//        AuthData auth = new AuthData("token123", "someUser");
-//        dataAccess.createAuth(auth);
-//
-//        assertThrows(AlreadyTakenException.class, () -> dataAccess.createAuth(auth));
-//    }
-//
-//    @Test
-//    void getAuthPositive() throws DataAccessException {
-//        MemoryDataAccess dataAccess = new MemoryDataAccess();
-//        AuthData auth = new AuthData("token123", "someUser");
-//        dataAccess.createAuth(auth);
-//
-//        assertEquals(auth, dataAccess.getAuth("token123"));
-//    }
-//
-//    @Test
-//    void getAuthNegative() throws DataAccessException{
-//        MemoryDataAccess dataAccess = new MemoryDataAccess();
-//
-//        assertNull(dataAccess.getAuth("nonexistentToken"));
-//    }
+    @Test
+    void getAuthPositive() throws DataAccessException {
+        DataAccess dataAccess = new MySqlDataAccess();
+        AuthData auth = new AuthData("token123", "someUser");
+        dataAccess.createAuth(auth);
+
+        assertEquals(auth, dataAccess.getAuth("token123"));
+    }
+
+
+    @Test
+    void getAuthNegative() throws DataAccessException{
+        DataAccess dataAccess = new MySqlDataAccess();
+
+        assertNull(dataAccess.getAuth("nonexistentToken"));
+    }
+
+    @Test
+    void createAuthNegative() throws DataAccessException {
+        DataAccess dataAccess = new MySqlDataAccess();
+
+        AuthData auth = new AuthData("token123", "someUser");
+        dataAccess.createAuth(auth);
+
+        assertThrows(AlreadyTakenException.class, () -> dataAccess.createAuth(auth));
+    }
+
 //
 //    @Test
 //    void deleteAuthPositive() throws DataAccessException {
