@@ -1,8 +1,11 @@
 package server;
 
 import com.google.gson.Gson;
+import dataaccess.DataAccess;
+import dataaccess.DataAccessException;
 import dataaccess.MemoryDataAccess;
 
+import dataaccess.MySqlDataAccess;
 import handler.ClearHandler;
 import handler.GameHandler;
 import handler.UserHandler;
@@ -37,7 +40,14 @@ public class Server {
             }
         };
 
-        MemoryDataAccess dataAccess = new MemoryDataAccess();
+        DataAccess dataAccess;
+
+        try{
+            dataAccess = new MySqlDataAccess();
+        } catch (DataAccessException e) {
+            throw new RuntimeException(e);
+        }
+
 
         ClearService clearService = new ClearService(dataAccess);
         ClearHandler clearHandler = new ClearHandler(clearService);
