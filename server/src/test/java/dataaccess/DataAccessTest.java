@@ -156,17 +156,38 @@ public class DataAccessTest {
     }
 
     @Test
+    void createAuthPositive() throws DataAccessException {
+        DataAccess dataAccess = new MySqlDataAccess();
+
+        AuthData auth = new AuthData("token123", "someUser");
+        dataAccess.createAuth(auth);
+
+        assertEquals(auth, dataAccess.getAuth("token123"));
+    }
+
+    @Test
     void createAuthNegative() throws DataAccessException {
         DataAccess dataAccess = new MySqlDataAccess();
 
         AuthData auth = new AuthData("token123", "someUser");
         dataAccess.createAuth(auth);
 
-        assertThrows(AlreadyTakenException.class, () -> dataAccess.createAuth(auth));
+        assertThrows(DataAccessException.class, () -> dataAccess.createAuth(auth));
     }
 
 //
 //    @Test
+//    void deleteAuthPositive() throws DataAccessException {
+//        MemoryDataAccess dataAccess = new MemoryDataAccess();
+//        AuthData auth = new AuthData("token123", "someUser");
+//        dataAccess.createAuth(auth);
+//
+//        dataAccess.deleteAuth("token123");
+//
+//        assertNull(dataAccess.getAuth("token123"));
+//    }
+
+    @Test
 //    void deleteAuthPositive() throws DataAccessException {
 //        MemoryDataAccess dataAccess = new MemoryDataAccess();
 //        AuthData auth = new AuthData("token123", "someUser");
