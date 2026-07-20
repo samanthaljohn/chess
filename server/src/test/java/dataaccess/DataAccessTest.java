@@ -50,19 +50,27 @@ public class DataAccessTest {
         assertThrows(DataAccessException.class, () -> dataAccess.createUser(user));
     }
 
-    //@Test
-//    void getUserNegative() throws DataAccessException {
-//        MemoryDataAccess dataAccess = new MemoryDataAccess();
-//
-//        assertNull(dataAccess.getUser("nonexistentUsername"));
-//    }
-//
-//    @Test
-//    void getUserNegative() throws DataAccessException {
-//        MemoryDataAccess dataAccess = new MemoryDataAccess();
-//
-//        assertNull(dataAccess.getUser("nonexistentUsername"));
-//    }
+    @Test
+    void getUserPositive() throws DataAccessException {
+        DataAccess dataAccess = new MySqlDataAccess();
+
+        UserData user = new UserData("newUsername", "password", "myemail@gmail.com");
+        dataAccess.createUser(user);
+
+        UserData storedUser = dataAccess.getUser("newUsername");
+
+        assertEquals(user.username(), storedUser.username());
+        assertTrue(BCrypt.checkpw(user.password(), storedUser.password()));
+        assertEquals(user.email(), storedUser.email());
+    }
+
+    @Test
+    void getUserNegative() throws DataAccessException {
+        DataAccess dataAccess = new MySqlDataAccess();
+
+        assertNull(dataAccess.getUser("nonexistentUsername"));
+    }
+
 //
 //    @Test
 //    void createGame() throws DataAccessException {
