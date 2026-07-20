@@ -9,6 +9,7 @@ import java.util.Collection;
 
 public class MySqlDataAccess implements DataAccess{
     public MySqlDataAccess() throws DataAccessException{
+        DatabaseManager.createDatabase();
         configureDatabase();
     }
 
