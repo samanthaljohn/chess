@@ -99,7 +99,7 @@ public class MySqlDataAccess implements DataAccess{
                 getUserStatement.setString(1, username);
                 try (var result = getUserStatement.executeQuery()){
                     if (result.next()){
-                        return new UserData(username, result.getString("password"), results.getString("email"));
+                        return new UserData(username, result.getString("password"), result.getString("email"));
                     }
                     else {
                         return null;
