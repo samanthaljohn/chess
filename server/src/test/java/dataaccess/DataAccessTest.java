@@ -71,7 +71,6 @@ public class DataAccessTest {
         assertNull(dataAccess.getUser("nonexistentUsername"));
     }
 
-
     @Test
     void createGamePositive() throws DataAccessException {
         DataAccess dataAccess = new MySqlDataAccess();
@@ -88,22 +87,22 @@ public class DataAccessTest {
         assertThrows(DataAccessException.class, () -> dataAccess.createGame(null));
     }
 
-//    @Test
-//    void getGamePositive() throws DataAccessException {
-//        MemoryDataAccess dataAccess = new MemoryDataAccess();
-//        dataAccess.createGame("newGame");
-//        GameData game = new GameData(1, null, null, "newGame", new ChessGame());
-//
-//        assertEquals(game, dataAccess.getGame(1));
-//    }
-//
-//    @Test
-//    void getGameNegative() throws DataAccessException {
-//        MemoryDataAccess dataAccess = new MemoryDataAccess();
-//
-//        assertNull(dataAccess.getGame(2));
-//    }
-//
+    @Test
+    void getGamePositive() throws DataAccessException {
+        DataAccess dataAccess = new MySqlDataAccess();
+        dataAccess.createGame("newGame");
+        GameData game = new GameData(1, null, null, "newGame", new ChessGame());
+
+        assertEquals(game, dataAccess.getGame(1));
+    }
+
+    @Test
+    void getGameNegative() throws DataAccessException {
+        DataAccess dataAccess = new MySqlDataAccess();
+
+        assertNull(dataAccess.getGame(2039484));
+    }
+
 //    @Test
 //    void listGameNull() throws DataAccessException{
 //        MemoryDataAccess dataAccess = new MemoryDataAccess();
