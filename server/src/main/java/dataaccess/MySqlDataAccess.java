@@ -10,6 +10,7 @@ import com.google.gson.Gson;
 import org.mindrot.jbcrypt.BCrypt;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Collection;
 import static java.sql.Statement.RETURN_GENERATED_KEYS;
 
@@ -124,7 +125,7 @@ public class MySqlDataAccess implements DataAccess{
                 createGameStatement.setString(2, null);
                 createGameStatement.setString(3, gameName);
 
-                var json = new Gson().toJson(new ChessGame());
+                String json = new Gson().toJson(new ChessGame());
                 createGameStatement.setString(4, json);
 
                 createGameStatement.executeUpdate();
@@ -148,8 +149,8 @@ public class MySqlDataAccess implements DataAccess{
                         String whiteUsername = result.getString("whiteUsername");
                         String blackUsername = result.getString("blackUsername");
 
-                        var json = result.getString("game");
-                        var game = new Gson().fromJson(json, ChessGame.class);
+                        String json = result.getString("game");
+                        ChessGame game = new Gson().fromJson(json, ChessGame.class);
 
                         String gameName = result.getString("gameName");
 
@@ -167,8 +168,29 @@ public class MySqlDataAccess implements DataAccess{
 
     @Override
     public Collection<GameData> listGames() throws DataAccessException {
-        return null;
+        try (var conn = DatabaseManager.getConnection()){
+            try (var listGamesStatement = conn.prepareStatement("SELECT gameID, whiteUsername, blackUsername, gameName, game FROM gameData")){
+                try (var result = listGamesStatement.executeQuery()){
+                    Collection<GameData> games = new ArrayList<>();
+                    while (result.next()){
+                        int gameID = result.getInt("gameID");
+                        String whiteUsername = result.getString("whiteUsername");
+                        String blackUsername = result.getString("blackUsername");
+                        String gameName = result.getString("gameName");
+
+                        String json = result.getString("game");
+                        ChessGame game = new Gson().fromJson(json, ChessGame.class);
+
+                        games.add(new GameData(gameID, whiteUsername, blackUsername, gameName, game));
+                    }
+                    return games;
+                }
+            }
+        } catch (SQLException e){
+            throw new DataAccessException(e.getMessage());
+        }
     }
+
     @Override
     public void updateGame(GameData gameData) throws DataAccessException {}
 
