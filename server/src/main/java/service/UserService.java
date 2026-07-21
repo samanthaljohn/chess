@@ -8,12 +8,15 @@ import dataaccess.UnauthorizedException;
 import model.AuthData;
 import model.UserData;
 
+import org.mindrot.jbcrypt.BCrypt;
 import request.LoginRequest;
 import request.RegisterRequest;
 import result.LoginResult;
 import result.RegisterResult;
 
 import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class UserService {
     private DataAccess dataAccess;
@@ -46,7 +49,7 @@ public class UserService {
     public LoginResult login(LoginRequest loginRequest) throws DataAccessException{
         String username = loginRequest.username(), password = loginRequest.password();
         UserData user = dataAccess.getUser(username);
-        if (user == null || !user.password().equals(password)){
+        if (user == null || !BCrypt.checkpw(password, user.password())){
             throw new UnauthorizedException("unauthorized");
         }
 
