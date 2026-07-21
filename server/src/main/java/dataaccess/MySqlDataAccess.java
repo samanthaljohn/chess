@@ -140,8 +140,31 @@ public class MySqlDataAccess implements DataAccess{
 
     @Override
     public GameData getGame(int gameId) throws DataAccessException {
-        return null;
+        try (var conn = DatabaseManager.getConnection()){
+            try (var getGameStatement = conn.prepareStatement("SELECT gameID, whiteUsername, blackUsername, gameName, game FROM gameData WHERE gameID = ?")){
+                getGameStatement.setInt(1, gameId);
+                try (var result = getGameStatement.executeQuery()){
+                    if (result.next()){
+                        String whiteUsername = result.getString("whiteUsername");
+                        String blackUsername = result.getString("blackUsername");
+
+                        var json = result.getString("game");
+                        var game = new Gson().fromJson(json, ChessGame.class);
+
+                        String gameName = result.getString("gameName");
+
+                        return new GameData(gameId, whiteUsername, blackUsername, gameName, game);
+                    }
+                    else {
+                        return null;
+                    }
+                }
+            }
+        } catch (SQLException e){
+            throw new DataAccessException(e.getMessage());
+        }
     }
+
     @Override
     public Collection<GameData> listGames() throws DataAccessException {
         return null;
