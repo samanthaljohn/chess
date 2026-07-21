@@ -120,7 +120,8 @@ public class MySqlDataAccess implements DataAccess{
     @Override
     public int createGame(String gameName) throws DataAccessException {
         try (var conn = DatabaseManager.getConnection()){
-            try (var createGameStatement = conn.prepareStatement("INSERT INTO gameData (whiteUsername, blackUsername, gameName, game) VALUES (?, ?, ?, ?)", RETURN_GENERATED_KEYS)){
+            String sql = "INSERT INTO gameData (whiteUsername, blackUsername, gameName, game) VALUES (?, ?, ?, ?)";
+            try (var createGameStatement = conn.prepareStatement(sql, RETURN_GENERATED_KEYS)){
                 createGameStatement.setString(1, null);
                 createGameStatement.setString(2, null);
                 createGameStatement.setString(3, gameName);
@@ -142,7 +143,8 @@ public class MySqlDataAccess implements DataAccess{
     @Override
     public GameData getGame(int gameId) throws DataAccessException {
         try (var conn = DatabaseManager.getConnection()){
-            try (var getGameStatement = conn.prepareStatement("SELECT gameID, whiteUsername, blackUsername, gameName, game FROM gameData WHERE gameID = ?")){
+            String sql = "SELECT gameID, whiteUsername, blackUsername, gameName, game FROM gameData WHERE gameID = ?";
+            try (var getGameStatement = conn.prepareStatement(sql)){
                 getGameStatement.setInt(1, gameId);
                 try (var result = getGameStatement.executeQuery()){
                     if (result.next()){
@@ -194,7 +196,8 @@ public class MySqlDataAccess implements DataAccess{
     @Override
     public void updateGame(GameData gameData) throws DataAccessException {
         try (var conn = DatabaseManager.getConnection()){
-            try (var updateGameStatement = conn.prepareStatement("UPDATE gameData SET whiteUsername = ?, blackUsername = ?, game = ? WHERE gameID = ?")){
+            String sql = "UPDATE gameData SET whiteUsername = ?, blackUsername = ?, game = ? WHERE gameID = ?";
+            try (var updateGameStatement = conn.prepareStatement(sql)){
                 updateGameStatement.setString(1, gameData.whiteUsername());
                 updateGameStatement.setString(2, gameData.blackUsername());
 
