@@ -126,27 +126,28 @@ public class DataAccessTest {
         assertEquals(0, games.size());
     }
 
-//
-//    @Test
-//    void updateGamePositive() throws DataAccessException {
-//        MemoryDataAccess dataAccess = new MemoryDataAccess();
-//        int gameID = dataAccess.createGame("newGame");
-//
-//        GameData updatedGame = new GameData(gameID, "whitePlayer", null, "newGame", new ChessGame());
-//        dataAccess.updateGame(updatedGame);
-//
-//        assertEquals(updatedGame, dataAccess.getGame(gameID));
-//    }
-//
-//    @Test
-//    void updateGameNegative() throws DataAccessException{
-//        MemoryDataAccess dataAccess = new MemoryDataAccess();
-//
-//        GameData fakeGame = new GameData(999, null, null, "fakeGame", new ChessGame());
-//
-//        assertThrows(DataAccessException.class, () -> dataAccess.updateGame(fakeGame));
-//    }
-//
+    @Test
+    void updateGamePositive() throws DataAccessException {
+        DataAccess dataAccess = new MySqlDataAccess();
+        int gameID = dataAccess.createGame("newGame");
+
+        GameData updatedGame = new GameData(gameID, "whitePlayer", null, "newGame", new ChessGame());
+        dataAccess.updateGame(updatedGame);
+
+        assertEquals(updatedGame, dataAccess.getGame(gameID));
+    }
+
+    @Test
+    void updateGameNegative() throws DataAccessException{
+        DataAccess dataAccess = new MySqlDataAccess();
+
+        GameData fakeGame = new GameData(999, null, null, "fakeGame", new ChessGame());
+
+        assertNull(dataAccess.getGame(999));
+        assertDoesNotThrow(() -> dataAccess.updateGame(fakeGame));
+        assertNull(dataAccess.getGame(999));
+    }
+
     @Test
     void getAuthPositive() throws DataAccessException {
         DataAccess dataAccess = new MySqlDataAccess();
