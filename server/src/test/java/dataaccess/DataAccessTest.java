@@ -103,26 +103,29 @@ public class DataAccessTest {
         assertNull(dataAccess.getGame(2039484));
     }
 
-//    @Test
-//    void listGameNull() throws DataAccessException{
-//        MemoryDataAccess dataAccess = new MemoryDataAccess();
-//
-//        assertEquals(0, dataAccess.listGames().size());
-//    }
-//
-//    @Test
-//    void listGamesPositive() throws DataAccessException {
-//        MemoryDataAccess dataAccess = new MemoryDataAccess();
-//
-//        int gameID1 = dataAccess.createGame("gameOne");
-//        int gameID2 = dataAccess.createGame("gameTwo");
-//
-//        Collection<GameData> games = dataAccess.listGames();
-//
-//        assertEquals(2, games.size());
-//        assertTrue(games.contains(new GameData(gameID1, null, null, "gameOne", new ChessGame())));
-//        assertTrue(games.contains(new GameData(gameID2, null, null, "gameTwo", new ChessGame())));
-//    }
+    @Test
+    void listGamesPositive() throws DataAccessException {
+        DataAccess dataAccess = new MySqlDataAccess();
+
+        int gameID1 = dataAccess.createGame("gameOne");
+        int gameID2 = dataAccess.createGame("gameTwo");
+
+        Collection<GameData> games = dataAccess.listGames();
+
+        assertEquals(2, games.size());
+        assertTrue(games.contains(new GameData(gameID1, null, null, "gameOne", new ChessGame())));
+        assertTrue(games.contains(new GameData(gameID2, null, null, "gameTwo", new ChessGame())));
+    }
+
+    @Test
+    void listGamesNegative() throws DataAccessException {
+        DataAccess dataAccess = new MySqlDataAccess();
+
+        Collection<GameData> games = dataAccess.listGames();
+
+        assertEquals(0, games.size());
+    }
+
 //
 //    @Test
 //    void updateGamePositive() throws DataAccessException {
