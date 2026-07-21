@@ -1,12 +1,17 @@
 package dataaccess;
 
+
+import chess.ChessGame;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
+
+import com.google.gson.Gson;
 import org.mindrot.jbcrypt.BCrypt;
 
 import java.sql.SQLException;
 import java.util.Collection;
+import static java.sql.Statement.RETURN_GENERATED_KEYS;
 
 public class MySqlDataAccess implements DataAccess{
     public MySqlDataAccess() throws DataAccessException{
@@ -112,22 +117,40 @@ public class MySqlDataAccess implements DataAccess{
     }
 
     @Override
-    public int createGame(String gameName) throws DataAccessException{
-        return 0;
+    public int createGame(String gameName) throws DataAccessException {
+        try (var conn = DatabaseManager.getConnection()){
+            try (var createGameStatement = conn.prepareStatement("INSERT INTO gameData (whiteUsername, blackUsername, gameName, game) VALUES (?, ?, ?, ?)", RETURN_GENERATED_KEYS)){
+                createGameStatement.setString(1, null);
+                createGameStatement.setString(2, null);
+                createGameStatement.setString(3, gameName);
+
+                var json = new Gson().toJson(new ChessGame());
+                createGameStatement.setString(4, json);
+
+                createGameStatement.executeUpdate();
+
+                var result = createGameStatement.getGeneratedKeys();
+                result.next();
+                return result.getInt(1);
+            }
+        } catch (SQLException e){
+            throw new DataAccessException(e.getMessage());
+        }
     }
-    @Override
-    public GameData getGame(int gameId) throws DataAccessException{
-        return null;
-    }
-    @Override
-    public Collection<GameData> listGames() throws DataAccessException{
-        return null;
-    }
-    @Override
-    public void updateGame(GameData gameData) throws DataAccessException{}
 
     @Override
-    public void createAuth(AuthData authData) throws DataAccessException{
+    public GameData getGame(int gameId) throws DataAccessException {
+        return null;
+    }
+    @Override
+    public Collection<GameData> listGames() throws DataAccessException {
+        return null;
+    }
+    @Override
+    public void updateGame(GameData gameData) throws DataAccessException {}
+
+    @Override
+    public void createAuth(AuthData authData) throws DataAccessException {
         try (var conn = DatabaseManager.getConnection()){
             try (var createAuthStatement = conn.prepareStatement("INSERT INTO authData (authToken, username) VALUES(?, ?)")){
                 String authToken = authData.authToken();
@@ -161,6 +184,7 @@ public class MySqlDataAccess implements DataAccess{
             throw new DataAccessException(e.getMessage());
         }
     }
+
     @Override
     public void deleteAuth(String authToken) throws DataAccessException{
         try (var conn = DatabaseManager.getConnection()){
