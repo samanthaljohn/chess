@@ -19,12 +19,24 @@ public class DataAccessTest {
         dataAccess.clear();
     }
 
-//    @Test
-//    void clear() throws DataAccessException {
-//        DataAccess dataAccess = new MySqlDataAccess();
-//
-//
-//    }
+    @Test
+    void clearPositive() throws DataAccessException {
+        DataAccess dataAccess = new MySqlDataAccess();
+
+        UserData user = new UserData("newUsername", "password", "myemail@gmail.com");
+        dataAccess.createUser(user);
+
+        AuthData auth = new AuthData("authToken", "newUsername");
+        dataAccess.createAuth(auth);
+
+        dataAccess.createGame("newGame");
+        dataAccess.createGame("gameTwo");
+
+        dataAccess.clear();
+        assertNull(dataAccess.getUser("newUsername"));
+        assertNull(dataAccess.getAuth("authToken"));
+        assertEquals(0, dataAccess.listGames().size());
+    }
 
     @Test
     void createUserPositive() throws DataAccessException {
