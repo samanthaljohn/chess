@@ -71,16 +71,23 @@ public class DataAccessTest {
         assertNull(dataAccess.getUser("nonexistentUsername"));
     }
 
-//
-//    @Test
-//    void createGame() throws DataAccessException {
-//        MemoryDataAccess dataAccess = new MemoryDataAccess();
-//
-//        int gameID = dataAccess.createGame("newGame");
-//
-//        assertEquals("newGame", dataAccess.getGame(gameID).gameName());
-//    }
-//
+
+    @Test
+    void createGamePositive() throws DataAccessException {
+        DataAccess dataAccess = new MySqlDataAccess();
+
+        int gameID = dataAccess.createGame("newGame");
+
+        assertEquals("newGame", dataAccess.getGame(gameID).gameName());
+    }
+
+     @Test
+    void createGameNegative() throws DataAccessException {
+        DataAccess dataAccess = new MySqlDataAccess();
+
+        assertThrows(DataAccessException.class, () -> dataAccess.createGame(null));
+    }
+
 //    @Test
 //    void getGamePositive() throws DataAccessException {
 //        MemoryDataAccess dataAccess = new MemoryDataAccess();
