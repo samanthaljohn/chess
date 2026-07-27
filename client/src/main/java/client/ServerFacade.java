@@ -1,8 +1,10 @@
 package client;
 
 import com.google.gson.Gson;
+import request.CreateGameRequest;
 import request.LoginRequest;
 import request.RegisterRequest;
+import result.CreateGameResult;
 import result.LoginResult;
 import result.RegisterResult;
 
@@ -92,5 +94,23 @@ public class ServerFacade {
         checkStatusCode(request);
     }
 
+    public CreateGameResult createGame(String authToken, String gameName) throws Exception{
+        String createGameUrl = url + "/game";
+
+        CreateGameRequest createGameRequest = new CreateGameRequest(gameName);
+        String json = new Gson().toJson(createGameRequest);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(new URI(createGameUrl))
+                .POST(HttpRequest.BodyPublishers.ofString(json))
+                .header("Content-Type", "application/json")
+                .header("authorization", authToken)
+                .build();
+
+        HttpResponse<String> httpResponse = checkStatusCode(request);
+
+        CreateGameResult createGameResult = new Gson().fromJson(httpResponse.body(), CreateGameResult.class);
+        return createGameResult;
+    }
 
 }
