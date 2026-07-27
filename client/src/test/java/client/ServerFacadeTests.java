@@ -58,10 +58,14 @@ public class ServerFacadeTests {
     }
 
     @Test
-    public void loginNegative() throws Exception{
+    public void loginNonexistentUser() throws Exception {
+        assertThrows(ResponseException.class, () -> facade.login("nonexistentUser", "password"));
+    }
+
+    @Test
+    public void loginBadPassword() throws Exception{
         facade.register("username", "password", "email@email.com");
 
-        assertThrows(ResponseException.class, () -> facade.login("nonexistentUser", "password"));
         assertThrows(ResponseException.class, () -> facade.login("username", "wrongPassword"));
     }
 
