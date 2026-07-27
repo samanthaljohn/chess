@@ -69,4 +69,23 @@ public class ServerFacadeTests {
         assertThrows(ResponseException.class, () -> facade.login("username", "wrongPassword"));
     }
 
+    @Test
+    public void logoutPositive() throws Exception{
+        facade.register("username", "password", "email@email.com");
+        LoginResult loginResult = facade.login("username", "password");
+        String authToken = loginResult.authToken();
+
+        assertDoesNotThrow(() -> facade.logout(authToken));
+    }
+
+    @Test
+    public void logoutNegative() throws Exception{
+        facade.register("username", "password", "email@email.com");
+        LoginResult loginResult = facade.login("username", "password");
+        String authToken = loginResult.authToken();
+        facade.logout(authToken);
+
+        assertThrows(ResponseException.class, () -> facade.logout(authToken));
+    }
+
 }
