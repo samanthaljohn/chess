@@ -11,7 +11,6 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.Locale;
 
 public class ServerFacade {
     private String url;
@@ -19,6 +18,19 @@ public class ServerFacade {
 
     public ServerFacade(int port){
         this.url = "http://localhost:" + port;
+    }
+
+    private HttpResponse<String> checkStatusCode(HttpRequest request) throws Exception {
+        // check status code and throw error, if not return response body
+        HttpResponse<String> httpResponse = client.send(request, HttpResponse.BodyHandlers.ofString());
+        int statusCode = httpResponse.statusCode();
+
+        if (statusCode != 200){
+            String message = (String) new Gson().fromJson(httpResponse.body(), Map.class).get("message");
+            throw new ResponseException(message, statusCode);
+        }
+
+        return httpResponse;
     }
 
     public void clear() throws Exception {
@@ -29,13 +41,7 @@ public class ServerFacade {
                 .DELETE()
                 .build();
 
-        HttpResponse<String> httpResponse = client.send(request, HttpResponse.BodyHandlers.ofString());
-        int statusCode = httpResponse.statusCode();
-
-        if (statusCode != 200){
-            String message = (String) new Gson().fromJson(httpResponse.body(), Map.class).get("message");
-            throw new ResponseException(message, statusCode);
-        }
+        checkStatusCode(request);
     }
 
     public RegisterResult register(String username, String password, String email) throws Exception{
@@ -50,13 +56,7 @@ public class ServerFacade {
                 .header("Content-Type", "application/json")
                 .build();
 
-        HttpResponse<String> httpResponse = client.send(request, HttpResponse.BodyHandlers.ofString());
-        int statusCode = httpResponse.statusCode();
-
-        if (statusCode != 200){
-            String message = (String) new Gson().fromJson(httpResponse.body(), Map.class).get("message");
-            throw new ResponseException(message, statusCode);
-        }
+        HttpResponse<String> httpResponse = checkStatusCode(request);
 
         RegisterResult registerResult = new Gson().fromJson(httpResponse.body(), RegisterResult.class);
         return registerResult;
@@ -74,13 +74,7 @@ public class ServerFacade {
                 .header("Content-Type", "application/json")
                 .build();
 
-        HttpResponse<String> httpResponse = client.send(request, HttpResponse.BodyHandlers.ofString());
-        int statusCode = httpResponse.statusCode();
-
-        if (statusCode != 200){
-            String message = (String) new Gson().fromJson(httpResponse.body(), Map.class).get("message");
-            throw new ResponseException(message, statusCode);
-        }
+        HttpResponse<String> httpResponse = checkStatusCode(request);
 
         LoginResult loginResult = new Gson().fromJson(httpResponse.body(), LoginResult.class);
         return loginResult;
@@ -95,13 +89,8 @@ public class ServerFacade {
                 .header("authorization", authToken)
                 .build();
 
-        HttpResponse<String> httpResponse = client.send(request, HttpResponse.BodyHandlers.ofString());
-        int statusCode = httpResponse.statusCode();
-
-        if (statusCode != 200){
-            String message = (String) new Gson().fromJson(httpResponse.body(), Map.class).get("message");
-            throw new ResponseException(message, statusCode);
-        }
+        checkStatusCode(request);
     }
+
 
 }
