@@ -2,6 +2,7 @@ package ui;
 
 import client.ResponseException;
 import client.ServerFacade;
+import org.glassfish.grizzly.utils.EchoFilter;
 import result.CreateGameResult;
 import result.ListGamesResult;
 import result.LoginResult;
@@ -47,6 +48,10 @@ public class Repl {
         System.out.println("Come back soon to play!");
         System.out.println("quit - return to previous menu");
         System.out.println();
+    }
+
+    private void drawChessBoard(int gameID){
+        System.out.println("INSERT SOME REPRESENTATION OF A CHESS BOARD HERE");
     }
 
     public void preLoginRepl(){
@@ -163,14 +168,45 @@ public class Repl {
                 } catch (ResponseException e){
                     System.out.print(e.getMessage());
                 } catch (Exception e){
-                    System.out.println("Something went wrong here, try again later.");
+                    System.out.println("Something went wrong here, try again.");
                 }
             } else if (command.equals("join")){
-                if (info.length != )
+                if (info.length != 3){
+                    System.out.println("Please specify the game ID and player color for the game you would like to join.");
+                    continue;
+                }
+
+                int gameID = Integer.parseInt(info[1]);
+                String playerColor = info[2].toUpperCase();
+
+                try {
+                    facade.joinGame(authToken, playerColor, gameID);
+                    drawChessBoard(gameID);
+                    gamePlay();
+                } catch (ResponseException e){
+                    System.out.println(e.getMessage());
+                } catch (Exception e){
+                    System.out.println("Something went wrong here, try again.");
+                }
 
             } else if (command.equals("observe")){
+                if (info.length != 2){
+                    System.out.println("Please specify only the game ID of the game you would like to observe.");
+                    continue;
+                }
+
+                int gameID = Integer.parseInt(info[1]);
+
+                drawChessBoard(gameID);
 
             } else if (command.equals("logout")){
+                System.out.println("All done with chess for the day? <y/n>");
+                String answer = scanner.nextLine();
+
+                if (answer.toUpperCase().equals("y")){
+                    authToken = null;
+                    return;
+                }
 
             } else if (command.equals("quit")){
                 System.out.println("Are you sure you want to quit (and return to the login menu)? <y/n>");
@@ -187,7 +223,7 @@ public class Repl {
         }
     }
 
-    public void gameplay(){
+    public void gamePlay(){
         printGamePlayHelpMenu();
 
         while (true){
