@@ -4,6 +4,7 @@ import chess.ChessBoard;
 import client.ResponseException;
 import client.ServerFacade;
 import model.PublicGameData;
+import result.CreateGameResult;
 import result.ListGamesResult;
 import result.LoginResult;
 import result.RegisterResult;
@@ -138,8 +139,8 @@ public class Repl {
         while (true){
             printUserPrompt("LOGGED_OUT");
 
-            String line = scanner.nextLine();
-            var info = line.split(" ");
+            String line = scanner.nextLine().trim();
+            var info = line.split("\\s+");
 
             String command = info[0].toLowerCase();
 
@@ -224,8 +225,8 @@ public class Repl {
         while (true){
             printUserPrompt("LOGGED_IN");
 
-            String line = scanner.nextLine();
-            var info = line.split(" ");
+            String line = scanner.nextLine().trim();
+            var info = line.split("\\s+");
 
             String command = info[0].toLowerCase();
 
@@ -238,7 +239,9 @@ public class Repl {
                 String gameName = info[1] ;
 
                 try {
-                    facade.createGame(authToken, gameName);
+                    CreateGameResult createGameResult = facade.createGame(authToken, gameName);
+                    int newGameNum = gameIDs.size() + 1;
+                    gameIDs.put(newGameNum, createGameResult.gameID());
                     printBold("Successfully created game: " + gameName + "\n");
                 } catch (ResponseException e){
                     printErrorReport(e.getMessage());
@@ -352,8 +355,8 @@ public class Repl {
         while (true){
             printUserPrompt("IN_GAME");
 
-            String line = scanner.nextLine();
-            var info = line.split(" ");
+            String line = scanner.nextLine().trim();
+            var info = line.split("\\s+");
 
 
             String command = info[0].toLowerCase();
