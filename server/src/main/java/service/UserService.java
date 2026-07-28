@@ -33,7 +33,7 @@ public class UserService {
         String username = registerRequest.username(), password = registerRequest.password(), email = registerRequest.email();
 
         if (dataAccess.getUser(username) != null){
-            throw new AlreadyTakenException("already taken");
+            throw new AlreadyTakenException("Username already taken.");
         }
         UserData userData = new UserData(username, password, email);
         dataAccess.createUser(userData);
@@ -50,7 +50,7 @@ public class UserService {
         String username = loginRequest.username(), password = loginRequest.password();
         UserData user = dataAccess.getUser(username);
         if (user == null || !BCrypt.checkpw(password, user.password())){
-            throw new UnauthorizedException("unauthorized");
+            throw new UnauthorizedException("Username or password is incorrect.");
         }
 
         String authToken = generateAuthToken();
@@ -65,7 +65,7 @@ public class UserService {
         AuthData auth = dataAccess.getAuth(authToken);
 
         if (auth == null) {
-            throw new UnauthorizedException("unauthorized");
+            throw new UnauthorizedException("Unauthorized request.");
         }
 
         dataAccess.deleteAuth(authToken);

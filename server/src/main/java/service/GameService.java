@@ -40,7 +40,7 @@ public class GameService {
         AuthData auth = dataAccess.getAuth(authToken);
 
         if (auth == null){
-            throw new UnauthorizedException("unauthorized");
+            throw new UnauthorizedException("Unauthorized request.");
         }
 
         Collection<GameData> games = dataAccess.listGames();
@@ -55,7 +55,7 @@ public class GameService {
         AuthData auth = dataAccess.getAuth(authToken);
 
         if (auth == null){
-            throw new UnauthorizedException("unauthorized");
+            throw new UnauthorizedException("Unauthorized request.");
         }
 
         String gameName = createGameRequest.gameName();
