@@ -2,24 +2,28 @@ package ui;
 
 import client.ResponseException;
 import client.ServerFacade;
-import org.glassfish.grizzly.utils.EchoFilter;
+import model.PublicGameData;
 import result.CreateGameResult;
 import result.ListGamesResult;
 import result.LoginResult;
 import result.RegisterResult;
 
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.Scanner;
 
 public class Repl {
-    private Scanner scanner;
-    private ServerFacade facade;
+    private final Scanner scanner;
+    private final ServerFacade facade;
     private String authToken;
+    private HashMap<Integer, Integer> gameIDs;
 
     public Repl(int port){
         this.scanner = new Scanner(System.in);
         this.facade = new ServerFacade(port);
 
         this.authToken = null;
+        this.gameIDs = new HashMap<>();
     }
 
     //private
@@ -44,10 +48,40 @@ public class Repl {
     }
 
     private void printGamePlayHelpMenu(){
-        System.out.println("So sorry - playing a game of chess is unavailable right now!");
-        System.out.println("Come back soon to play!");
+        System.out.println("Sorry - game play/observation is currently unsupported.");
+        System.out.println("Come back soon to play/observe!");
         System.out.println("quit - return to previous menu");
         System.out.println();
+    }
+
+    private void printListGames(Collection<PublicGameData> games){
+        gameIDs.clear();
+
+        if (games.isEmpty()){
+            System.out.println("No games found to list.");
+            return;
+        }
+
+        System.out.println("Game Number\tGame Name\tWhite Player\tBlack Player");
+
+        int count = 1;
+        for (PublicGameData game : games){
+            String output = count + "\t" + game.gameName() + "\t";
+            if (game.whiteUsername() != null){
+                output += game.whiteUsername() + "\t";
+            } else {
+                output += "---\t";
+            }
+
+            if (game.blackUsername() != null){
+                output += game.blackUsername();
+            } else {
+                output += "---";
+            }
+            System.out.println(output);
+
+            gameIDs.put(count, game.gameID());
+        }
     }
 
     private void drawChessBoard(int gameID){
@@ -113,7 +147,7 @@ public class Repl {
             } else if (command.equals("quit")){
                 System.out.println("Are you sure you want to quit? <y/n>");
                 String answer = scanner.nextLine();
-                if (answer.toLowerCase().equals("y")){
+                if (answer.equalsIgnoreCase("y")){
                     break;
                 }
             } else if (command.equals("help")){
@@ -160,11 +194,12 @@ public class Repl {
             } else if (command.equals("list")){
                 if (info.length != 1){
                     System.out.println("Incorrect number of arguments to list games!");
+                    continue;
                 }
 
                 try {
                     ListGamesResult listGamesResult = facade.listGames(authToken);
-                    System.out.print(listGamesResult);
+                    printListGames(listGamesResult.games());
                 } catch (ResponseException e){
                     System.out.print(e.getMessage());
                 } catch (Exception e){
@@ -176,7 +211,19 @@ public class Repl {
                     continue;
                 }
 
-                int gameID = Integer.parseInt(info[1]);
+                int gameNum;
+                try {
+                    gameNum = Integer.parseInt(info[1]);
+                } catch (Exception e){
+                    System.out.println("Game ID not valid.");
+                    continue;
+                }
+                Integer gameID = gameIDs.get(gameNum);
+                if (gameID == null){
+                    System.out.println("Game " + gameNum + " does not exist.");
+                    continue;
+                }
+
                 String playerColor = info[2].toUpperCase();
 
                 try {
@@ -195,15 +242,27 @@ public class Repl {
                     continue;
                 }
 
-                int gameID = Integer.parseInt(info[1]);
+                int gameNum;
+                try {
+                    gameNum = Integer.parseInt(info[1]);
+                } catch (Exception e){
+                    System.out.println("Game ID not valid.");
+                    continue;
+                }
+                Integer gameID = gameIDs.get(gameNum);
+                if (gameID == null){
+                    System.out.println("Game " + gameNum + " does not exist.");
+                    continue;
+                }
 
                 drawChessBoard(gameID);
+                gamePlay();
 
             } else if (command.equals("logout")){
                 System.out.println("All done with chess for the day? <y/n>");
                 String answer = scanner.nextLine();
 
-                if (answer.toUpperCase().equals("y")){
+                if (answer.equalsIgnoreCase("y")){
                     authToken = null;
                     return;
                 }
@@ -211,7 +270,7 @@ public class Repl {
             } else if (command.equals("quit")){
                 System.out.println("Are you sure you want to quit (and return to the login menu)? <y/n>");
                 String answer = scanner.nextLine();
-                if (answer.toLowerCase().equals("y")){
+                if (answer.equalsIgnoreCase("y")){
                     printPreloginHelpMenu();
                     return;
                 }
@@ -237,7 +296,7 @@ public class Repl {
                 System.out.println("Are you sure you want to quit playing chess (and return to the previous menu)? <y/n>");
                 String answer = scanner.nextLine();
 
-                if (answer.toLowerCase().equals("y")){
+                if (answer.equalsIgnoreCase("y")){
                     printPostloginHelpMenu();
                     return;
                 }
