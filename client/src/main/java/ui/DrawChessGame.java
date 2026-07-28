@@ -18,7 +18,7 @@ public class DrawChessGame {
         var out = new PrintStream(System.out, true, StandardCharsets.UTF_8);
         ChessBoard board = new ChessBoard();
         board.resetBoard();
-        drawChessBoard(out, board,"WHITE");
+        drawChessBoard(out, board,"BLACK");
     }
 
     // color setters
@@ -34,8 +34,16 @@ public class DrawChessGame {
         out.print(SET_BG_COLOR_WHITE);
     }
 
-    private static void setBlack(PrintStream out){
-        out.print(SET_BG_COLOR_BLACK);
+    private static void setWhiteText(PrintStream out){
+        out.print(SET_TEXT_COLOR_WHITE);
+    }
+
+    private static void setBlackText(PrintStream out){
+        out.print(SET_TEXT_COLOR_BLACK);
+    }
+
+    private static void setPinkText(PrintStream out){
+        out.print(SET_TEXT_COLOR_PINK);
     }
 
     private static void setDefault(PrintStream out){
@@ -47,6 +55,7 @@ public class DrawChessGame {
         return String.valueOf((char)(c + 0xFEE0));
     }
 
+    // getters
     private static ChessPiece getPiece(ChessBoard board, String playerColor, int row, int col){
         int piece_row, piece_col;
         if (playerColor.equals("BLACK")){
@@ -62,8 +71,14 @@ public class DrawChessGame {
         return piece;
     }
 
-    private static String getPieceChar(ChessPiece piece){
+    private static String getPieceChar(PrintStream out, ChessPiece piece){
         boolean isWhite = piece.getTeamColor() == ChessGame.TeamColor.WHITE;
+
+        if (isWhite){
+            setPinkText(out);
+        } else {
+            setBlackText(out);
+        }
 
         switch (piece.getPieceType()){
             case KING:
@@ -114,6 +129,7 @@ public class DrawChessGame {
     private static boolean labelCols(PrintStream out, List<String> colLabels, int col, int row, int charRow){
         if ((col > 0 && col < 9) && ((row == 0 && charRow == 1) || (row == 9 && charRow == 0))){
             char colChar = String.valueOf(colLabels.get(col - 1)).charAt(0);
+            setWhiteText(out);
             out.print(EMPTY + " ");
             out.print(toFullWidth(colChar));
             out.print(EMPTY + " ");
@@ -126,6 +142,7 @@ public class DrawChessGame {
         if (charRow == 0 && (row > 0 && row < 9)) {
             int rowNum = rowLabels.get(row - 1);
             char rowChar = String.valueOf(rowNum).charAt(0);
+            setWhiteText(out);
             if (col == 0) {
                 out.print(EMPTY.repeat(2) + toFullWidth(rowChar) + "  ");
                 return true;
@@ -159,7 +176,7 @@ public class DrawChessGame {
 
                     if (piece != null){
                         out.print(EMPTY.repeat(1));
-                        out.print(getPieceChar(piece));
+                        out.print(getPieceChar(out, piece));
                         out.print(EMPTY.repeat(1));
                     } else {
                         out.print(EMPTY.repeat(3));
