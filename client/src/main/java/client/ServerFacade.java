@@ -5,6 +5,7 @@ import request.CreateGameRequest;
 import request.LoginRequest;
 import request.RegisterRequest;
 import result.CreateGameResult;
+import result.ListGamesResult;
 import result.LoginResult;
 import result.RegisterResult;
 
@@ -111,6 +112,21 @@ public class ServerFacade {
 
         CreateGameResult createGameResult = new Gson().fromJson(httpResponse.body(), CreateGameResult.class);
         return createGameResult;
+    }
+
+    public ListGamesResult listGames(String authToken) throws Exception{
+        String listGamesUrl = url + "/game";
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(new URI(listGamesUrl))
+                .GET()
+                .header("authorization", authToken)
+                .build();
+
+        HttpResponse<String> httpResponse = checkStatusCode(request);
+
+        ListGamesResult listGamesResult = new Gson().fromJson(httpResponse.body(), ListGamesResult.class);
+        return listGamesResult;
     }
 
 }
