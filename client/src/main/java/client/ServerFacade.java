@@ -2,6 +2,7 @@ package client;
 
 import com.google.gson.Gson;
 import request.CreateGameRequest;
+import request.JoinGameRequest;
 import request.LoginRequest;
 import request.RegisterRequest;
 import result.CreateGameResult;
@@ -127,6 +128,22 @@ public class ServerFacade {
 
         ListGamesResult listGamesResult = new Gson().fromJson(httpResponse.body(), ListGamesResult.class);
         return listGamesResult;
+    }
+
+    public void joinGame(String authToken, String playerColor, int gameID) throws Exception{
+        String joinGameUrl = url + "/game";
+
+        JoinGameRequest joinGameRequest = new JoinGameRequest(playerColor, gameID);
+        String json = new Gson().toJson(joinGameRequest);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(new URI(joinGameUrl))
+                .PUT(HttpRequest.BodyPublishers.ofString(json))
+                .header("Content-Type", "application/json")
+                .header("authorization", authToken)
+                .build();
+
+        checkStatusCode(request);
     }
 
 }
