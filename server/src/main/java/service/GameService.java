@@ -69,13 +69,13 @@ public class GameService {
         AuthData auth = dataAccess.getAuth(authToken);
 
         if (auth == null){
-            throw new UnauthorizedException("unauthorized");
+            throw new UnauthorizedException("Unauthorized request.");
         }
 
         int gameID = joinGameRequest.gameID();
         GameData game = dataAccess.getGame(gameID);
         if (game == null){
-            throw new BadRequestException("bad request");
+            throw new BadRequestException("Game does not exist.");
         }
 
         String playerColor = joinGameRequest.playerColor();
@@ -83,10 +83,14 @@ public class GameService {
         String blackUsername = game.blackUsername();
 
         if ((playerColor.equals("WHITE") && whiteUsername != null) || (playerColor.equals("BLACK") && blackUsername != null)){
-            throw new AlreadyTakenException("already taken");
+            throw new AlreadyTakenException("Player color already taken.");
         }
 
         String username = auth.username();
+        if ((playerColor.equals("WHITE") && blackUsername != null && blackUsername.equals(username)) || (playerColor.equals("BLACK") && whiteUsername != null && whiteUsername.equals(username))){
+            throw new AlreadyTakenException("You may not join a game as both white and black.");
+        }
+
         if (playerColor.equals("WHITE")){
             GameData newGame = new GameData(gameID, username, game.blackUsername(), game.gameName(), game.game());
             dataAccess.updateGame(newGame);
