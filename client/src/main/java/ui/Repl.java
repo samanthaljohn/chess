@@ -291,7 +291,7 @@ public class Repl {
                 } catch (ResponseException e){
                     printErrorReport(e.getMessage());
                 } catch (Exception e){
-                    printErrorReport("\"Something went wrong here. Check your server connection and try again.\"");
+                    printErrorReport("Something went wrong here. Check your server connection and try again.");
                 }
 
             } else if (command.equals("observe")){
