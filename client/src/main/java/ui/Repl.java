@@ -37,13 +37,21 @@ public class Repl {
         System.out.println("join <ID> [WHITE][BLACK] - a game");
         System.out.println("observe <ID> - a game");
         System.out.println("logout - when you are done");
-        System.out.print("quit - playing chess");
-        System.out.print("help - with possible commands");
+        System.out.println("quit - playing chess");
+        System.out.println("help - with possible commands");
+        System.out.println();
+    }
+
+    private void printGamePlayHelpMenu(){
+        System.out.println("So sorry - playing a game of chess is unavailable right now!");
+        System.out.println("Come back soon to play!");
+        System.out.println("quit - return to previous menu");
         System.out.println();
     }
 
     public void preLoginRepl(){
-        System.out.println("Welcome to 240 Chess! Type Help to get started.");
+        System.out.println("Welcome to 240 Chess! Type help to get started.");
+        System.out.println();
 
         while (true){
             String line = scanner.nextLine();
@@ -112,7 +120,7 @@ public class Repl {
                     System.out.println(e.getMessage());
                 }
             } else {
-                System.out.println("Hmm... Seems like you didn't select one of the options, maybe try again?");
+                System.out.println("Please choose a valid option.");
             }
         }
     }
@@ -158,23 +166,49 @@ public class Repl {
                     System.out.println("Something went wrong here, try again later.");
                 }
             } else if (command.equals("join")){
+                if (info.length != )
 
             } else if (command.equals("observe")){
 
             } else if (command.equals("logout")){
 
             } else if (command.equals("quit")){
-
+                System.out.println("Are you sure you want to quit (and return to the login menu)? <y/n>");
+                String answer = scanner.nextLine();
+                if (answer.toLowerCase().equals("y")){
+                    printPreloginHelpMenu();
+                    return;
+                }
             } else if (command.equals("help")){
                 printPostloginHelpMenu();
             } else {
-                System.out.println("Hmm... Seems like you didn't select one of the options, maybe try again?");
+                System.out.println("Please choose a valid option.");
             }
         }
     }
 
     public void gameplay(){
+        printGamePlayHelpMenu();
 
+        while (true){
+            String line = scanner.nextLine();
+            var info = line.split(" ");
+
+
+            String command = info[0].toLowerCase();
+
+            if (command.equals("quit")){
+                System.out.println("Are you sure you want to quit playing chess (and return to the previous menu)? <y/n>");
+                String answer = scanner.nextLine();
+
+                if (answer.toLowerCase().equals("y")){
+                    printPostloginHelpMenu();
+                    return;
+                }
+            } else {
+                System.out.println("Please choose a valid option.");
+            }
+        }
     }
 
     public static void main(String[] args){
