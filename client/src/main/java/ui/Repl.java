@@ -12,6 +12,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Scanner;
 
+import static ui.EscapeSequences.*;
+
 public class Repl {
     private final Scanner scanner;
     private final ServerFacade facade;
@@ -27,60 +29,61 @@ public class Repl {
     }
 
     //private
+    private void printUserPrompt(String status){
+        System.out.print(SET_TEXT_COLOR_LIGHT_GREY);
+        System.out.print("[" + status + "] " + ">>> ");
+        System.out.print(SET_TEXT_COLOR_WHITE);
+    }
 
     private void printPreloginHelpMenu(){
-        System.out.println("register <USERNAME> <PASSWORD> <EMAIL> - to create an account");
-        System.out.println("login <USERNAME> <PASSWORD> - to play chess");
-        System.out.println("quit - playing chess");
-        System.out.println("help - with possible commands");
-        System.out.println();
+        System.out.println("\tregister <USERNAME> <PASSWORD> <EMAIL> - to create an account");
+        System.out.println("\tlogin <USERNAME> <PASSWORD> - to play chess");
+        System.out.println("\tquit - playing chess");
+        System.out.println("\thelp - with possible commands");
     }
 
     private void printPostloginHelpMenu(){
-        System.out.println("create <NAME>");
-        System.out.println("list - games");
-        System.out.println("join <ID> [WHITE][BLACK] - a game");
-        System.out.println("observe <ID> - a game");
-        System.out.println("logout - when you are done");
-        System.out.println("quit - playing chess");
-        System.out.println("help - with possible commands");
-        System.out.println();
+        System.out.println("\tcreate <NAME>");
+        System.out.println("\tlist - games");
+        System.out.println("\tjoin <ID> [WHITE][BLACK] - a game");
+        System.out.println("\tobserve <ID> - a game");
+        System.out.println("\tlogout - when you are done");
+        System.out.println("\tquit - playing chess");
+        System.out.println("\thelp - with possible commands");
     }
 
     private void printGamePlayHelpMenu(){
         System.out.println("Sorry - game play/observation is currently unsupported.");
         System.out.println("Come back soon to play/observe!");
-        System.out.println("quit - return to previous menu");
-        System.out.println();
+        System.out.println("\tquit - return to previous menu");
     }
 
     private void printListGames(Collection<PublicGameData> games){
         gameIDs.clear();
 
         if (games.isEmpty()){
-            System.out.println("No games found to list.");
+            System.out.println("No games found. When you create a game, it will show up here.");
             return;
         }
+        String format = "%-12s %-15s %-25s %-25s%n";
+        System.out.printf(format, "Game ID", "Game Name", "White Player Username", "Black Player Username");
 
-        System.out.println("Game Number\tGame Name\tWhite Player\tBlack Player");
+        int gameNum = 1;
 
-        int count = 1;
         for (PublicGameData game : games){
-            String output = count + "\t" + game.gameName() + "\t";
-            if (game.whiteUsername() != null){
-                output += game.whiteUsername() + "\t";
-            } else {
-                output += "---\t";
-            }
+            String whiteUsername = game.whiteUsername();
+            String blackUsername = game.blackUsername();
 
-            if (game.blackUsername() != null){
-                output += game.blackUsername();
-            } else {
-                output += "---";
+            if (whiteUsername == null) {
+                whiteUsername = "---";
             }
-            System.out.println(output);
+            if (blackUsername == null){
+                blackUsername = "---";
+            }
+            System.out.printf(format, gameNum, game.gameName(), whiteUsername, blackUsername);
 
-            gameIDs.put(count, game.gameID());
+            gameIDs.put(gameNum, game.gameID());
+            gameNum++;
         }
     }
 
@@ -90,9 +93,10 @@ public class Repl {
 
     public void preLoginRepl(){
         System.out.println("Welcome to 240 Chess! Type help to get started.");
-        System.out.println();
 
         while (true){
+            printUserPrompt("LOGGED_OUT");
+
             String line = scanner.nextLine();
             var info = line.split(" ");
 
@@ -100,7 +104,7 @@ public class Repl {
 
             if (command.equals("register")){
                 if (info.length != 4){
-                    System.out.println("Incorrect number of arguments to register!");
+                    System.out.println("Please provide a username, password, and email to register an account.");
                     continue;
                 }
 
@@ -119,12 +123,12 @@ public class Repl {
                 } catch (ResponseException e) {
                     System.out.println(e.getMessage());
                 } catch (Exception e){
-                    System.out.println("Looks like something went wrong here... try again later");
+                    System.out.println("Something went wrong here. Try again.");
                 }
 
             } else if (command.equals("login")){
                 if (info.length != 3){
-                    System.out.println("Incorrect number of arguments to login!");
+                    System.out.println("Please provide a username and password to login to an existing account.");
                     continue;
                 }
 
@@ -135,19 +139,20 @@ public class Repl {
                     LoginResult loginResult = facade.login(username, password);
                     authToken = loginResult.authToken();
 
-                    System.out.print("Logged in as " + username + "\n");
+                    System.out.print("Welcome back " + username + "!\n");
 
                     postLoginRepl();
                 } catch (ResponseException e){
                     System.out.println(e.getMessage());
                 } catch (Exception e){
-                    System.out.println("Looks like something went wrong here... try again later");
+                    System.out.println("Something went wrong here. Try again.");
                 }
 
             } else if (command.equals("quit")){
-                System.out.println("Are you sure you want to quit? <y/n>");
+                System.out.println("Are you sure you want to quit the application? <y/n>");
                 String answer = scanner.nextLine();
                 if (answer.equalsIgnoreCase("y")){
+                    System.out.println("Thanks for playing!");
                     break;
                 }
             } else if (command.equals("help")){
@@ -168,6 +173,8 @@ public class Repl {
         printPostloginHelpMenu();
 
         while (true){
+            printUserPrompt("LOGGED_IN");
+
             String line = scanner.nextLine();
             var info = line.split(" ");
 
@@ -175,25 +182,23 @@ public class Repl {
 
             if (command.equals("create")){
                 if (info.length != 2){
-                    System.out.println("Incorrect number of arguments to create a game!");
+                    System.out.println("Please provide a game name to create a new game. Use underscores instead of spaces (ex. my_chess_game).");
                     continue;
                 }
 
                 String gameName = info[1] ;
 
                 try {
-                    CreateGameResult createGameResult = facade.createGame(authToken, gameName);
-                    int gameID = createGameResult.gameID();
-                    System.out.println("Created game: " + gameName + "!");
-                    System.out.println("Type join <" + gameID + "> [WHITE|BLACK] to join" + gameName + ".");
+                    facade.createGame(authToken, gameName);
+                    System.out.println("Successfully created game: " + gameName);
                 } catch (ResponseException e){
                     System.out.println(e.getMessage());
                 } catch (Exception e){
-                    System.out.println("Something went wrong. Try again later.");
+                    System.out.println("Something went wrong here. Try again.");
                 }
             } else if (command.equals("list")){
                 if (info.length != 1){
-                    System.out.println("Incorrect number of arguments to list games!");
+                    System.out.println("Type list to list games.");
                     continue;
                 }
 
@@ -203,11 +208,11 @@ public class Repl {
                 } catch (ResponseException e){
                     System.out.print(e.getMessage());
                 } catch (Exception e){
-                    System.out.println("Something went wrong here, try again.");
+                    System.out.println("Something went wrong here. Try again.");
                 }
             } else if (command.equals("join")){
                 if (info.length != 3){
-                    System.out.println("Please specify the game ID and player color for the game you would like to join.");
+                    System.out.println("Please provide the game ID and player color for the game you would like to join.");
                     continue;
                 }
 
@@ -228,17 +233,18 @@ public class Repl {
 
                 try {
                     facade.joinGame(authToken, playerColor, gameID);
+                    System.out.println("Successfully joined game " + gameNum + " as " + playerColor.toLowerCase() + "\n");
                     drawChessBoard(gameID);
                     gamePlay();
                 } catch (ResponseException e){
                     System.out.println(e.getMessage());
                 } catch (Exception e){
-                    System.out.println("Something went wrong here, try again.");
+                    System.out.println("Something went wrong here. Try again.");
                 }
 
             } else if (command.equals("observe")){
                 if (info.length != 2){
-                    System.out.println("Please specify only the game ID of the game you would like to observe.");
+                    System.out.println("Please specify the game ID of the game you would like to observe.");
                     continue;
                 }
 
@@ -259,16 +265,17 @@ public class Repl {
                 gamePlay();
 
             } else if (command.equals("logout")){
-                System.out.println("All done with chess for the day? <y/n>");
+                System.out.println("Are you sure you would like to logout (and return to the login menu)? <y/n>");
                 String answer = scanner.nextLine();
 
                 if (answer.equalsIgnoreCase("y")){
                     authToken = null;
+                    printPreloginHelpMenu();
                     return;
                 }
 
             } else if (command.equals("quit")){
-                System.out.println("Are you sure you want to quit (and return to the login menu)? <y/n>");
+                System.out.println("Are you sure you want to quit playing chess (and logout)? <y/n>");
                 String answer = scanner.nextLine();
                 if (answer.equalsIgnoreCase("y")){
                     printPreloginHelpMenu();
@@ -286,6 +293,8 @@ public class Repl {
         printGamePlayHelpMenu();
 
         while (true){
+            printUserPrompt("IN_GAME");
+
             String line = scanner.nextLine();
             var info = line.split(" ");
 
@@ -293,7 +302,7 @@ public class Repl {
             String command = info[0].toLowerCase();
 
             if (command.equals("quit")){
-                System.out.println("Are you sure you want to quit playing chess (and return to the previous menu)? <y/n>");
+                System.out.println("Are you sure you want to quit playing/observing this chess game (and return to the previous menu)? <y/n>");
                 String answer = scanner.nextLine();
 
                 if (answer.equalsIgnoreCase("y")){
