@@ -2,6 +2,7 @@ package ui;
 
 import client.ResponseException;
 import client.ServerFacade;
+import result.LoginResult;
 import result.RegisterResult;
 
 import java.util.Scanner;
@@ -28,7 +29,7 @@ public class Repl {
         System.out.println("help - with possible commands");
     }
 
-    public void prelogin(){
+    public void preLoginRepl(){
         printPreloginHelpMenu();
 
         while (true){
@@ -52,9 +53,9 @@ public class Repl {
                     authToken = registerResult.authToken();
 
                     System.out.print("Successfully registered!");
-                    System.out.print("Logged in as username");
+                    System.out.print("Logged in as " + username);
 
-                    postlogin();
+                    postLoginRepl();
                 } catch (ResponseException e) {
                     System.out.println(e.getMessage());
                 } catch (Exception e){
@@ -62,6 +63,26 @@ public class Repl {
                 }
 
             } else if (command.equals("login")){
+                if (info.length != 3){
+                    System.out.println("Incorrect number of arguments to login!");
+                    continue;
+                }
+
+                String username = info[1];
+                String password = info[2];
+
+                try {
+                    LoginResult loginResult = facade.login(username, password);
+                    authToken = loginResult.authToken();
+
+                    System.out.print("Logged in as " + username);
+
+                    postLoginRepl();
+                } catch (ResponseException e){
+                    System.out.println(e.getMessage());
+                } catch (Exception e){
+                    System.out.println("Looks like something went wrong here... try again later");
+                }
 
             } else if (command.equals("quit")){
                 System.out.println("Are you sure you want to quit? <y/n>");
@@ -77,7 +98,7 @@ public class Repl {
         }
     }
 
-    public void postlogin(){
+    public void postLoginRepl(){
 
     }
 
@@ -86,6 +107,6 @@ public class Repl {
     }
 
     public void main(){
-        prelogin();
+        preLoginRepl();
     }
 }
