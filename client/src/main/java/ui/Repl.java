@@ -27,6 +27,18 @@ public class Repl {
         System.out.println("login <USERNAME> <PASSWORD> - to play chess");
         System.out.println("quit - playing chess");
         System.out.println("help - with possible commands");
+        System.out.println();
+    }
+
+    private void printPostloginHelpMenu(){
+        System.out.println("create <NAME>");
+        System.out.println("list - games");
+        System.out.println("join <ID> [WHITE][BLACK] - a game");
+        System.out.println("observe <ID> - a game");
+        System.out.println("logout - when you are done");
+        System.out.print("quit - playing chess");
+        System.out.print("help - with possible commands");
+        System.out.println();
     }
 
     public void preLoginRepl(){
@@ -52,7 +64,7 @@ public class Repl {
                     RegisterResult registerResult = facade.register(username, password, email);
                     authToken = registerResult.authToken();
 
-                    System.out.print("Successfully registered!");
+                    System.out.print("Successfully registered!\n");
                     System.out.print("Logged in as " + username);
 
                     postLoginRepl();
@@ -75,7 +87,7 @@ public class Repl {
                     LoginResult loginResult = facade.login(username, password);
                     authToken = loginResult.authToken();
 
-                    System.out.print("Logged in as " + username);
+                    System.out.print("Welcome " + username);
 
                     postLoginRepl();
                 } catch (ResponseException e){
@@ -99,14 +111,15 @@ public class Repl {
     }
 
     public void postLoginRepl(){
-
+        printPreloginHelpMenu();
     }
 
     public void gameplay(){
 
     }
 
-    public void main(){
-        preLoginRepl();
+    public static void main(String[] args){
+        Repl repl = new Repl(8080);
+        repl.preLoginRepl();
     }
 }
