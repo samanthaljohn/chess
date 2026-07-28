@@ -4,6 +4,7 @@ import org.junit.jupiter.api.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import result.CreateGameResult;
+import result.ListGamesResult;
 import result.LoginResult;
 import result.RegisterResult;
 import server.Server;
@@ -103,6 +104,25 @@ public class ServerFacadeTests {
     @Test
     public void createGameNegative() throws Exception{
         assertThrows(ResponseException.class, () -> facade.createGame("badAuthToken", "gameName"));
+    }
+
+    @Test
+    public void listGamesPositive() throws Exception {
+        facade.register("username", "password", "email@email.com");
+        LoginResult loginResult = facade.login("username", "password");
+        String authToken = loginResult.authToken();
+
+        facade.createGame(authToken, "gameOne");
+        facade.createGame(authToken, "gameTwo");
+        facade.createGame(authToken, "gameThree");
+
+        ListGamesResult listGamesResult = facade.listGames(authToken);
+        assertEquals(3, listGamesResult.games().size());
+    }
+
+    @Test
+    public void listGamesNegative() throws Exception {
+        assertThrows(ResponseException.class, () -> facade.listGames("badAuthToken"));
     }
 
 }
