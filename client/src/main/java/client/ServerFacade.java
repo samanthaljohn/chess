@@ -18,7 +18,7 @@ import java.net.http.HttpResponse;
 
 public class ServerFacade {
     private String url;
-    private static final HttpClient client = HttpClient.newHttpClient();
+    private static final HttpClient CLIENT = HttpClient.newHttpClient();
 
     public ServerFacade(int port){
         this.url = "http://localhost:" + port;
@@ -26,7 +26,7 @@ public class ServerFacade {
 
     private HttpResponse<String> checkStatusCode(HttpRequest request) throws Exception {
         // check status code and throw error, if not return response body
-        HttpResponse<String> httpResponse = client.send(request, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> httpResponse = CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
         int statusCode = httpResponse.statusCode();
 
         if (statusCode != 200){
