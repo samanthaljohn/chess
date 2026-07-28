@@ -2,6 +2,8 @@ package ui;
 
 import client.ResponseException;
 import client.ServerFacade;
+import result.CreateGameResult;
+import result.ListGamesResult;
 import result.LoginResult;
 import result.RegisterResult;
 
@@ -22,7 +24,6 @@ public class Repl {
     //private
 
     private void printPreloginHelpMenu(){
-        System.out.println("Welcome to 240 Chess! Type Help to get started.");
         System.out.println("register <USERNAME> <PASSWORD> <EMAIL> - to create an account");
         System.out.println("login <USERNAME> <PASSWORD> - to play chess");
         System.out.println("quit - playing chess");
@@ -42,7 +43,7 @@ public class Repl {
     }
 
     public void preLoginRepl(){
-        printPreloginHelpMenu();
+        System.out.println("Welcome to 240 Chess! Type Help to get started.");
 
         while (true){
             String line = scanner.nextLine();
@@ -65,7 +66,7 @@ public class Repl {
                     authToken = registerResult.authToken();
 
                     System.out.print("Successfully registered!\n");
-                    System.out.print("Logged in as " + username);
+                    System.out.print("Logged in as " + username + "\n");
 
                     postLoginRepl();
                 } catch (ResponseException e) {
@@ -87,7 +88,7 @@ public class Repl {
                     LoginResult loginResult = facade.login(username, password);
                     authToken = loginResult.authToken();
 
-                    System.out.print("Welcome " + username);
+                    System.out.print("Logged in as " + username + "\n");
 
                     postLoginRepl();
                 } catch (ResponseException e){
@@ -104,6 +105,12 @@ public class Repl {
                 }
             } else if (command.equals("help")){
                 printPreloginHelpMenu();
+            } else if (command.equals("clear")){
+                try {
+                    facade.clear();
+                } catch (Exception e) {
+                    System.out.println(e.getMessage());
+                }
             } else {
                 System.out.println("Hmm... Seems like you didn't select one of the options, maybe try again?");
             }
@@ -111,7 +118,59 @@ public class Repl {
     }
 
     public void postLoginRepl(){
-        printPreloginHelpMenu();
+        printPostloginHelpMenu();
+
+        while (true){
+            String line = scanner.nextLine();
+            var info = line.split(" ");
+
+            String command = info[0].toLowerCase();
+
+            if (command.equals("create")){
+                if (info.length != 2){
+                    System.out.println("Incorrect number of arguments to create a game!");
+                    continue;
+                }
+
+                String gameName = info[1] ;
+
+                try {
+                    CreateGameResult createGameResult = facade.createGame(authToken, gameName);
+                    int gameID = createGameResult.gameID();
+                    System.out.println("Created game: " + gameName + "!");
+                    System.out.println("Type join <" + gameID + "> [WHITE|BLACK] to join" + gameName + ".");
+                } catch (ResponseException e){
+                    System.out.println(e.getMessage());
+                } catch (Exception e){
+                    System.out.println("Something went wrong. Try again later.");
+                }
+            } else if (command.equals("list")){
+                if (info.length != 1){
+                    System.out.println("Incorrect number of arguments to list games!");
+                }
+
+                try {
+                    ListGamesResult listGamesResult = facade.listGames(authToken);
+                    System.out.print(listGamesResult);
+                } catch (ResponseException e){
+                    System.out.print(e.getMessage());
+                } catch (Exception e){
+                    System.out.println("Something went wrong here, try again later.");
+                }
+            } else if (command.equals("join")){
+
+            } else if (command.equals("observe")){
+
+            } else if (command.equals("logout")){
+
+            } else if (command.equals("quit")){
+
+            } else if (command.equals("help")){
+                printPostloginHelpMenu();
+            } else {
+                System.out.println("Hmm... Seems like you didn't select one of the options, maybe try again?");
+            }
+        }
     }
 
     public void gameplay(){
