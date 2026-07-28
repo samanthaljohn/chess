@@ -1,5 +1,6 @@
 package ui;
 
+import chess.ChessBoard;
 import client.ResponseException;
 import client.ServerFacade;
 import model.PublicGameData;
@@ -7,6 +8,8 @@ import result.ListGamesResult;
 import result.LoginResult;
 import result.RegisterResult;
 
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Scanner;
@@ -120,8 +123,12 @@ public class Repl {
         System.out.print(RESET_TEXT_COLOR);
     }
 
-    private void drawChessBoard(int gameID){
-        System.out.println("INSERT SOME REPRESENTATION OF A CHESS BOARD HERE");
+    private void drawChessBoard(String playerColor){
+        var out = new PrintStream(System.out, true, StandardCharsets.UTF_8);
+        ChessBoard board = new ChessBoard();
+        board.resetBoard();
+
+        DrawChessGame.drawChessBoard(out, board, playerColor);
     }
 
     public void preLoginRepl(){
@@ -202,9 +209,7 @@ public class Repl {
             } else if (command.equals("clear")){
                 try {
                     facade.clear();
-                } catch (Exception e) {
-                    System.out.println(e.getMessage());
-                }
+                } catch (Exception e) {}
             } else {
                 printErrorReport("Please choose a valid option. Type help for option information.");
             }
@@ -278,7 +283,7 @@ public class Repl {
                 try {
                     facade.joinGame(authToken, playerColor, gameID);
                     printBold("Successfully joined game " + gameNum + " as " + playerColor.toLowerCase() + "\n");
-                    drawChessBoard(gameID);
+                    drawChessBoard(playerColor);
                     gamePlay();
                 } catch (ResponseException e){
                     printErrorReport(e.getMessage());
@@ -305,7 +310,7 @@ public class Repl {
                     continue;
                 }
 
-                drawChessBoard(gameID);
+                drawChessBoard("WHITE");
                 gamePlay();
 
             } else if (command.equals("logout")){
@@ -365,10 +370,5 @@ public class Repl {
                 System.out.println("Please choose a valid option. Type help for option information.");
             }
         }
-    }
-
-    public static void main(String[] args){
-        Repl repl = new Repl(8080);
-        repl.preLoginRepl();
     }
 }

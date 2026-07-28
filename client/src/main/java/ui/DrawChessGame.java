@@ -14,13 +14,6 @@ import static ui.EscapeSequences.*;
 public class DrawChessGame {
     private static final int BOARD_SQUARE_SIZE = 3;
 
-    public static void main(String[] args){
-        var out = new PrintStream(System.out, true, StandardCharsets.UTF_8);
-        ChessBoard board = new ChessBoard();
-        board.resetBoard();
-        drawChessBoard(out, board,"BLACK");
-    }
-
     // color setters
     private static void setLightPink(PrintStream out){
         out.print(SET_BG_COLOR_LIGHT_PINK);
