@@ -37,7 +37,6 @@ public class Repl {
         System.out.print(RESET_TEXT_BOLD_FAINT);
     }
 
-    //private
     private void printUserPrompt(String status){
         System.out.print(SET_TEXT_COLOR_LIGHT_GREY);
         System.out.print("[" + status + "] " + ">>> ");
