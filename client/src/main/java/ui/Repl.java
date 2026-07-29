@@ -50,6 +50,14 @@ public class Repl {
         System.out.print(RESET_TEXT_ITALIC);
     }
 
+    private void printServerErrorReport(){
+        printErrorReport("Something went wrong here. Check your server connection and try again.");
+    }
+
+    private void printInvalidOptionReport(){
+        printErrorReport("Please choose a valid option. Type help for option information.");
+    }
+
     private void printFormattedMenu(String[][] menu){
         for (String[] menuLine : menu){
             String command = menuLine[0];
@@ -88,6 +96,40 @@ public class Repl {
         System.out.println("Come back soon to play/observe!");
 
         printFormattedMenu(gamePlayMenu);
+    }
+
+    private boolean validateArgCount(String[] args, int expectedNum, String message){
+        if (args.length != expectedNum){
+            printErrorReport(message);
+            return false;
+        }
+        return true;
+    }
+
+    private int validateGameID(String[] args){
+        int gameNum;
+        try {
+            gameNum = Integer.parseInt(args[1]);
+        } catch (Exception e){
+            printErrorReport("Game ID not valid.");
+            return -1;
+        }
+        Integer gameID = gameIDs.get(gameNum);
+        if (gameID == null){
+            printErrorReport("Game " + gameNum + " does not exist.");
+            return -1;
+        }
+        return gameID;
+    }
+
+    private boolean quit(String message){
+        System.out.println(message);
+        String answer = scanner.nextLine();
+        if (answer.equalsIgnoreCase("y")){
+            System.out.println("Thanks for playing!");
+            return true;
+        }
+        return false;
     }
 
     private void printListGames(Collection<PublicGameData> games){
@@ -145,10 +187,7 @@ public class Repl {
             String command = info[0].toLowerCase();
 
             if (command.equals("register")){
-                if (info.length != 4){
-                    printErrorReport("Please provide a username, password, and email to register an account.");
-                    continue;
-                }
+                if(!validateArgCount(info, 4, "Please provide a username, password, and email to register an account.")) { continue; }
 
                 String username = info[1];
                 String password = info[2];
@@ -168,15 +207,10 @@ public class Repl {
                     }
                 } catch (ResponseException e) {
                     printErrorReport(e.getMessage());
-                } catch (Exception e){
-                    printErrorReport("Something went wrong here. Check your server connection and try again.");
-                }
+                } catch (Exception e){ printServerErrorReport(); }
 
             } else if (command.equals("login")){
-                if (info.length != 3){
-                    printErrorReport("Please provide a username and password to login to an existing account.");
-                    continue;
-                }
+                if (!validateArgCount(info, 3, "Please provide a username and password to login to an existing account.")) { continue; }
 
                 String username = info[1];
                 String password = info[2];
@@ -194,32 +228,22 @@ public class Repl {
                     }
                 } catch (ResponseException e){
                     printErrorReport(e.getMessage());
-                } catch (Exception e){
-                    printErrorReport("Something went wrong here. Check your server connection and try again.");
-                }
+                } catch (Exception e){printServerErrorReport();}
 
             } else if (command.equals("quit")){
-                System.out.println("Are you sure you want to quit the application? <y/n>");
-                String answer = scanner.nextLine();
-                if (answer.equalsIgnoreCase("y")){
-                    System.out.println("Thanks for playing!");
-                    break;
-                }
+                if (quit("Are you sure you want to quit the application? <y/n>")) { break; }
             } else if (command.equals("help")){
                 preloginHelpMenu();
             } else if (command.equals("clear")){
                 try {
                     facade.clear();
                 } catch (Exception e) {}
-            } else {
-                printErrorReport("Please choose a valid option. Type help for option information.");
-            }
+            } else { printInvalidOptionReport(); }
         }
     }
 
     public boolean postLoginRepl(){
         postloginHelpMenu();
-
         boolean quitApplication = false;
 
         while (true){
@@ -231,96 +255,52 @@ public class Repl {
             String command = info[0].toLowerCase();
 
             if (command.equals("create")){
-                if (info.length != 2){
-                    printErrorReport("Please provide a game name to create a new game. Use underscores instead of spaces (ex. my_chess_game).");
-                    continue;
-                }
-
-                String gameName = info[1] ;
-
+                if (!validateArgCount(info, 2, "Please provide a game name to create a new game. Use underscores instead of spaces (ex. my_chess_game).")) { continue; }
                 try {
+                    String gameName = info[1];
+
                     CreateGameResult createGameResult = facade.createGame(authToken, gameName);
                     int newGameNum = gameIDs.size() + 1;
                     gameIDs.put(newGameNum, createGameResult.gameID());
                     printBold("Successfully created game: " + gameName + "\n");
                 } catch (ResponseException e){
                     printErrorReport(e.getMessage());
-                } catch (Exception e){
-                    printErrorReport("Something went wrong here. Check your server connection and try again.");
-                }
+                } catch (Exception e){ printServerErrorReport(); }
             } else if (command.equals("list")){
-                if (info.length != 1){
-                    printErrorReport("Type list to list games.");
-                    continue;
-                }
+                if (!validateArgCount(info, 1, "Type list to list games.")) { continue; }
 
                 try {
                     ListGamesResult listGamesResult = facade.listGames(authToken);
                     printListGames(listGamesResult.games());
                 } catch (ResponseException e){
                     printErrorReport(e.getMessage());
-                } catch (Exception e){
-                    printErrorReport("Something went wrong here. Check your server connection and try again.");
-                }
+                } catch (Exception e){ printServerErrorReport();}
             } else if (command.equals("join")){
-                if (info.length != 3){
-                    printErrorReport("Please provide the game ID and player color for the game you would like to join.");
-                    continue;
-                }
+                if (!validateArgCount(info, 3, "Please provide the game ID and player color for the game you would like to join.")) { continue; }
 
-                int gameNum;
-                try {
-                    gameNum = Integer.parseInt(info[1]);
-                } catch (Exception e){
-                    printErrorReport("Game ID not valid.");
-                    continue;
-                }
-                Integer gameID = gameIDs.get(gameNum);
-                if (gameID == null){
-                    printErrorReport("Game " + gameNum + " does not exist.");
-                    continue;
-                }
-
-                String playerColor = info[2].toUpperCase();
+                int gameID = validateGameID(info);
+                if (gameID == -1) { continue; }
 
                 try {
+                    String playerColor = info[2].toUpperCase();
+
                     facade.joinGame(authToken, playerColor, gameID);
-                    printBold("Successfully joined game " + gameNum + " as " + playerColor.toLowerCase() + "\n");
+                    printBold("Successfully joined game as " + playerColor.toLowerCase() + "\n");
                     drawChessBoard(playerColor);
                     gamePlay();
                 } catch (ResponseException e){
                     printErrorReport(e.getMessage());
-                } catch (Exception e){
-                    printErrorReport("Something went wrong here. Check your server connection and try again.");
-                }
-
+                } catch (Exception e){ printServerErrorReport();}
             } else if (command.equals("observe")){
-                if (info.length != 2){
-                    printErrorReport("Please specify the game ID of the game you would like to observe.");
-                    continue;
-                }
+                if(!validateArgCount(info, 2, "Please specify the game ID of the game you would like to observe.")) { continue; }
 
-                int gameNum;
-                try {
-                    gameNum = Integer.parseInt(info[1]);
-                } catch (Exception e){
-                    printErrorReport("Game ID not valid.");
-                    continue;
-                }
-                Integer gameID = gameIDs.get(gameNum);
-                if (gameID == null){
-                    printErrorReport("Game " + gameNum + " does not exist.");
-                    continue;
-                }
+                int gameID = validateGameID(info);
+                if (gameID == -1) { continue; }
 
                 drawChessBoard("WHITE");
                 gamePlay();
-
             } else if (command.equals("logout")){
-                System.out.println("Are you sure you would like to logout (and return to the previous menu)? <y/n>");
-                String answer = scanner.nextLine();
-
-                if (answer.equalsIgnoreCase("y")){
+                if (quit("Are you sure you would like to logout (and return to the previous menu)? <y/n>")){
                     try {
                         facade.logout(authToken);
                         authToken = null;
@@ -332,19 +312,14 @@ public class Repl {
                         printErrorReport("Something went wrong here. Check your server connection and try again.");
                     }
                 }
-
             } else if (command.equals("quit")){
-                System.out.println("Are you sure you want to quit (logout and quit the application)? <y/n>");
-                String answer = scanner.nextLine();
-                if (answer.equalsIgnoreCase("y")){
+                if (quit("Are you sure you want to quit (logout and quit the application)? <y/n>")){
                     quitApplication = true;
                     return quitApplication;
                 }
             } else if (command.equals("help")){
                 postloginHelpMenu();
-            } else {
-                System.out.println("Please choose a valid option. Type help for option information.");
-            }
+            } else {printInvalidOptionReport();}
         }
         return quitApplication;
     }
@@ -369,9 +344,7 @@ public class Repl {
                     postloginHelpMenu();
                     return;
                 }
-            } else {
-                System.out.println("Please choose a valid option. Type help for option information.");
-            }
+            } else {printInvalidOptionReport(); }
         }
     }
 }

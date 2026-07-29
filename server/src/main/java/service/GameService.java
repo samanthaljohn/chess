@@ -87,7 +87,11 @@ public class GameService {
         }
 
         String username = auth.username();
-        if ((playerColor.equals("WHITE") && blackUsername != null && blackUsername.equals(username)) || (playerColor.equals("BLACK") && whiteUsername != null && whiteUsername.equals(username))){
+
+        boolean isWhiteJoiningBlack = playerColor.equals("WHITE") && blackUsername != null && blackUsername.equals(username);
+        boolean isBlackJoiningWhite = playerColor.equals("BLACK") && whiteUsername != null && whiteUsername.equals(username);
+
+        if (isWhiteJoiningBlack || isBlackJoiningWhite){
             throw new AlreadyTakenException("You may not join a game as both white and black.");
         }
 
