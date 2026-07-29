@@ -255,7 +255,7 @@ public class Repl {
             String command = info[0].toLowerCase();
 
             if (command.equals("create")){
-                if (!validateArgCount(info, 2, "Please provide a game name to create a new game. Use underscores instead of spaces (ex. my_chess_game).")) { continue; }
+                if (!validateArgCount(info, 2, "Please provide a game name to create a new game. Use underscores instead of spaces.")) { continue; }
                 try {
                     String gameName = info[1];
 
