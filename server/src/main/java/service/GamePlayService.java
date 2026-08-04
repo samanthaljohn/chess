@@ -19,7 +19,7 @@ public class GamePlayService {
     private final DataAccess dataAccess;
     private final ConnectionManager connectionManager;
 
-    private AuthData getAuth(String authToken) throws DataAccessException {
+    private AuthData getAuthData(String authToken) throws DataAccessException {
         AuthData authData = dataAccess.getAuth(authToken);
 
         if (authData == null){
@@ -29,7 +29,7 @@ public class GamePlayService {
         return authData;
     }
 
-    private GameData getGame(int gameID) throws DataAccessException {
+    private GameData getGameData(int gameID) throws DataAccessException {
         GameData game = dataAccess.getGame(gameID);
 
         if (game == null) {
@@ -39,16 +39,33 @@ public class GamePlayService {
         return game;
     }
 
-    private Connection createConnection(AuthData auth, GameData game, Session session){
+    private GameData createUpdatedGameData(AuthData auth, GameData gameData) {
+        String username = auth.username();
+
+        String white = gameData.whiteUsername();
+        String black = gameData.blackUsername();
+
+        if (white.equals(username)){
+            white = null;
+        } else if (black.equals(username)){
+            black = null;
+        } else {
+            return null;
+        }
+
+        return new GameData(gameData.gameID(), white, black, gameData.gameName(), gameData.game());
+    }
+
+    private Connection createConnection(AuthData auth, GameData gameData, Session session){
         String username = auth.username();
 
         String playerStatus;
         ChessGame.TeamColor color;
 
-        if (game.whiteUsername().equals(username)){
+        if (gameData.whiteUsername().equals(username)){
             playerStatus = "PLAYER";
             color = ChessGame.TeamColor.WHITE;
-        } else if (game.blackUsername().equals(username)){
+        } else if (gameData.blackUsername().equals(username)){
             playerStatus = "PLAYER";
             color = ChessGame.TeamColor.BLACK;
         } else {
@@ -81,15 +98,15 @@ public class GamePlayService {
 
     public void connect(UserGameCommand command, Session session) throws DataAccessException {
         String authToken = command.getAuthToken();
-        AuthData authData = getAuth(authToken);
+        AuthData authData = getAuthData(authToken);
 
         int gameID = command.getGameID();
-        GameData game = getGame(gameID);
+        GameData gameData = getGameData(gameID);
 
-        Connection connection = createConnection(authData, game, session);
+        Connection connection = createConnection(authData, gameData, session);
         connectionManager.addConnection(gameID, connection);
 
-        LoadGameMessage loadGameMessage = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, game.game());
+        LoadGameMessage loadGameMessage = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, gameData.game());
         connectionManager.notifyRoot(loadGameMessage, connection);
 
         String notification = generateConnectMessage(connection);
@@ -99,19 +116,31 @@ public class GamePlayService {
 
     public void makeMove(UserGameCommand command, Session session) throws DataAccessException {
         String authToken = command.getAuthToken();
-        getAuth(authToken);
+        getAuthData(authToken);
     }
 
     public void leave(UserGameCommand command, Session session) throws DataAccessException {
         String authToken = command.getAuthToken();
-        getAuth(authToken);
+        AuthData authData = getAuthData(authToken);
 
         int gameID = command.getGameID();
+        GameData gameData = getGameData(gameID);
 
+        GameData newGameData = createUpdatedGameData(authData, gameData);
+        if (newGameData != null){
+            dataAccess.updateGame(newGameData);
+        }
+
+        Connection connection = createConnection(authData, gameData, session);
+
+        NotificationMessage notificationMessage = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, authData.username() + " left the game");
+        connectionManager.notifyAllButRoot(gameID, notificationMessage, connection);
+
+        connectionManager.removeConnection(gameID, connection);
     }
 
     public void resign(UserGameCommand command, Session session) throws DataAccessException {
         String authToken = command.getAuthToken();
-        getAuth(authToken);
+        getAuthData(authToken);
     }
 }
