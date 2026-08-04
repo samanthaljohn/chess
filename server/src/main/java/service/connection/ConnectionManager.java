@@ -48,7 +48,7 @@ public class ConnectionManager {
         }
     }
 
-    public void notifyOne(ServerMessage message, Connection connectionToSend) throws Exception {
+    public void notifyOne(ServerMessage message, Connection connectionToSend) {
         String json = new Gson().toJson(message);
 
         Session session = connectionToSend.session();
@@ -59,7 +59,7 @@ public class ConnectionManager {
         }
     }
 
-    public void notifyAll(int gameID, ServerMessage message) throws Exception {
+    public void notifyAll(int gameID, ServerMessage message) {
         String json = new Gson().toJson(message);
 
         List<Connection> connections = gameConnections.get(gameID);
@@ -78,7 +78,7 @@ public class ConnectionManager {
     }
 
 
-    public void notifyAllButOne(int gameID, ServerMessage message, Connection connectionToExclude) throws Exception {
+    public void notifyAllButOne(int gameID, ServerMessage message, Connection connectionToExclude) {
         String json = new Gson().toJson(message);
 
         List<Connection> connections = gameConnections.get(gameID);
