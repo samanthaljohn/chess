@@ -3,14 +3,13 @@ package service;
 import chess.ChessMove;
 import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
-import dataaccess.MySqlDataAccess;
 import dataaccess.UnauthorizedException;
 import jakarta.websocket.Session;
 import model.AuthData;
+import websocket.commands.UserGameCommand;
 
 public class GamePlayService {
     private final DataAccess dataAccess;
-    private final GameService gameService;
 
     private void isAuthorized(String authToken) throws DataAccessException {
         AuthData auth = dataAccess.getAuth(authToken);
@@ -20,24 +19,27 @@ public class GamePlayService {
         }
     }
 
-    public GamePlayService(DataAccess dataAccess, GameService gameService){
+    public GamePlayService(DataAccess dataAccess){
         this.dataAccess = dataAccess;
-        this.gameService = gameService;
     }
 
-    public void connect(String authToken, Integer gameID, Session session) throws DataAccessException{
+    public void connect(UserGameCommand command, Session session) throws DataAccessException {
+        String authToken = command.getAuthToken();
         isAuthorized(authToken);
     }
 
-    public void makeMove(String authToken, Integer gameID, ChessMove move, Session session) throws DataAccessException{
+    public void makeMove(UserGameCommand command, Session session) throws DataAccessException {
+        String authToken = command.getAuthToken();
         isAuthorized(authToken);
     }
 
-    public void leave(String authToken, Integer gameID, Session session) throws DataAccessException{
+    public void leave(UserGameCommand command, Session session) throws DataAccessException {
+        String authToken = command.getAuthToken();
         isAuthorized(authToken);
     }
 
-    public void resign(String authToken, Integer gameID, Session session) throws DataAccessException{
+    public void resign(UserGameCommand command, Session session) throws DataAccessException {
+        String authToken = command.getAuthToken();
         isAuthorized(authToken);
     }
 }
