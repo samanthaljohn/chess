@@ -12,6 +12,9 @@ import model.GameData;
 import service.connection.Connection;
 import service.connection.ConnectionManager;
 import websocket.commands.UserGameCommand;
+import websocket.messages.LoadGameMessage;
+import websocket.messages.NotificationMessage;
+import websocket.messages.ServerMessage;
 
 public class GamePlayService {
     private final DataAccess dataAccess;
@@ -46,6 +49,21 @@ public class GamePlayService {
         return new Connection(username, playerStatus, color, session);
     }
 
+    private String generateConnectMessage(Connection connection) {
+        String username = connection.username();
+        String outputMessage = username + " joined the game as ";
+
+        String playerStatus = connection.playerStatus();
+        ChessGame.TeamColor playerColor = connection.playerColor();
+        if (playerStatus.equals("PLAYER")){
+            outputMessage = outputMessage + playerColor + ".";
+        } else {
+            outputMessage = outputMessage + "an observer.";
+        }
+
+        return outputMessage;
+    }
+
     public GamePlayService(DataAccess dataAccess){
         this.dataAccess = dataAccess;
         this.connectionManager = new ConnectionManager();
@@ -62,6 +80,13 @@ public class GamePlayService {
         } else {
             Connection connection = createConnection(authData, game, session);
             connectionManager.addConnection(gameID, connection);
+
+            LoadGameMessage loadGameMessage = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, game.game());
+            connectionManager.notifyOne(loadGameMessage, connection);
+
+            String notification = generateConnectMessage(connection);
+            NotificationMessage notificationMessage = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, notification);
+            connectionManager.notifyAllButOne(gameID, notificationMessage, connection);
         }
     }
 
