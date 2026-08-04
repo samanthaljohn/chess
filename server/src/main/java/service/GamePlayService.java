@@ -37,7 +37,7 @@ public class GamePlayService {
             color = ChessGame.TeamColor.WHITE;
         } else if (game.blackUsername().equals(username)){
             playerStatus = "PLAYER";
-            color = ChessGame.TeamColor.WHITE;
+            color = ChessGame.TeamColor.BLACK;
         } else {
             playerStatus = "OBSERVER";
             color = null;
