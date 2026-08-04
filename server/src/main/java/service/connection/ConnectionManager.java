@@ -17,6 +17,13 @@ public class ConnectionManager {
         return true;
     }
 
+    private boolean connectionInConnections(int gameID, Connection connection){
+       if (connections.get(gameID).contains(connection)){
+           return true;
+       }
+       return false;
+    }
+
     public ConnectionManager(){
         this.connections = new HashMap<>();
     }
@@ -33,8 +40,10 @@ public class ConnectionManager {
         }
     }
 
-    public void removeConnection(int gameID, Connection connection){
-
+    public void removeConnection(int gameID, Connection connection) {
+        if (gameHasConnections(gameID) && connectionInConnections(gameID, connection)){
+            connections.get(gameID).remove(connection);
+        }
     }
 
     public void notify(int gameID, Connection connection, ServerMessage message) {
