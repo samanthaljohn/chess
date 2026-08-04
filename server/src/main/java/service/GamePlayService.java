@@ -1,7 +1,6 @@
 package service;
 
 import chess.ChessGame;
-import chess.ChessMove;
 import dataaccess.BadRequestException;
 import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
@@ -20,13 +19,24 @@ public class GamePlayService {
     private final DataAccess dataAccess;
     private final ConnectionManager connectionManager;
 
-    private AuthData isAuthorized(String authToken) throws DataAccessException {
-        AuthData auth = dataAccess.getAuth(authToken);
+    private AuthData getAuth(String authToken) throws DataAccessException {
+        AuthData authData = dataAccess.getAuth(authToken);
 
-        if (auth == null){
+        if (authData == null){
             throw new UnauthorizedException("Unauthorized request.");
         }
-        return auth;
+
+        return authData;
+    }
+
+    private GameData getGame(int gameID) throws DataAccessException {
+        GameData game = dataAccess.getGame(gameID);
+
+        if (game == null) {
+            throw new BadRequestException("Game does not exist.");
+        }
+
+        return game;
     }
 
     private Connection createConnection(AuthData auth, GameData game, Session session){
@@ -71,37 +81,37 @@ public class GamePlayService {
 
     public void connect(UserGameCommand command, Session session) throws DataAccessException {
         String authToken = command.getAuthToken();
-        AuthData authData = isAuthorized(authToken);
+        AuthData authData = getAuth(authToken);
 
         int gameID = command.getGameID();
-        GameData game = dataAccess.getGame(gameID);
-        if (game == null) {
-            throw new BadRequestException("Game does not exist.");
-        } else {
-            Connection connection = createConnection(authData, game, session);
-            connectionManager.addConnection(gameID, connection);
+        GameData game = getGame(gameID);
 
-            LoadGameMessage loadGameMessage = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, game.game());
-            connectionManager.notifyOne(loadGameMessage, connection);
+        Connection connection = createConnection(authData, game, session);
+        connectionManager.addConnection(gameID, connection);
 
-            String notification = generateConnectMessage(connection);
-            NotificationMessage notificationMessage = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, notification);
-            connectionManager.notifyAllButOne(gameID, notificationMessage, connection);
-        }
+        LoadGameMessage loadGameMessage = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, game.game());
+        connectionManager.notifyRoot(loadGameMessage, connection);
+
+        String notification = generateConnectMessage(connection);
+        NotificationMessage notificationMessage = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, notification);
+        connectionManager.notifyAllButRoot(gameID, notificationMessage, connection);
     }
 
     public void makeMove(UserGameCommand command, Session session) throws DataAccessException {
         String authToken = command.getAuthToken();
-        isAuthorized(authToken);
+        getAuth(authToken);
     }
 
     public void leave(UserGameCommand command, Session session) throws DataAccessException {
         String authToken = command.getAuthToken();
-        isAuthorized(authToken);
+        getAuth(authToken);
+
+        int gameID = command.getGameID();
+
     }
 
     public void resign(UserGameCommand command, Session session) throws DataAccessException {
         String authToken = command.getAuthToken();
-        isAuthorized(authToken);
+        getAuth(authToken);
     }
 }
