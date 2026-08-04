@@ -1,4 +1,4 @@
-package service;
+package service.connection;
 
 import chess.ChessGame;
 import jakarta.websocket.Session;
