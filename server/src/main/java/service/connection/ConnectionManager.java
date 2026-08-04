@@ -1,5 +1,7 @@
 package service.connection;
 
+import com.google.gson.Gson;
+import jakarta.websocket.Session;
 import websocket.messages.ServerMessage;
 
 import java.util.ArrayList;
@@ -8,45 +10,61 @@ import java.util.Map;
 import java.util.HashMap;
 
 public class ConnectionManager {
-    private final Map<Integer, List<Connection>> connections;
+    private final Map<Integer, List<Connection>> gameConnections;
 
     private boolean gameHasConnections(int gameID){
-        if (connections.get(gameID) == null){
+        if (gameConnections.get(gameID) == null){
             return false;
         }
         return true;
     }
 
     private boolean connectionInConnections(int gameID, Connection connection){
-       if (connections.get(gameID).contains(connection)){
+       if (gameConnections.get(gameID).contains(connection)){
            return true;
        }
        return false;
     }
 
     public ConnectionManager(){
-        this.connections = new HashMap<>();
+        this.gameConnections = new HashMap<>();
     }
 
     public void addConnection(int gameID, Connection connection){
         if (gameHasConnections(gameID)) {
-            connections.get(gameID).add(connection);
+            gameConnections.get(gameID).add(connection);
 
         } else {
-            List<Connection> newConnectionList = new ArrayList<>();
-            newConnectionList.add(connection);
+            List<Connection> connections = new ArrayList<>();
+            connections.add(connection);
 
-            connections.put(gameID, newConnectionList);
+            gameConnections.put(gameID, connections);
         }
     }
 
     public void removeConnection(int gameID, Connection connection) {
         if (gameHasConnections(gameID) && connectionInConnections(gameID, connection)){
-            connections.get(gameID).remove(connection);
+            gameConnections.get(gameID).remove(connection);
         }
     }
 
-    public void notify(int gameID, Connection connection, ServerMessage message) {
+    public void notify(int gameID, ServerMessage message, Connection connectionToExclude) throws Exception {
+        String json = new Gson().toJson(message);
 
+        List<Connection> connections = gameConnections.get(gameID);
+        if (connections == null){
+            return;
+        }
+
+        for (Connection existingConnection : connections){
+            Session session = existingConnection.session();
+            if (!existingConnection.equals(connectionToExclude)) {
+                try {
+                    session.getBasicRemote().sendText(json);
+                } catch (Exception e) {
+                    System.out.println(e.getMessage());
+                }
+            }
+        }
     }
 }
