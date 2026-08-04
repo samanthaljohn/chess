@@ -11,6 +11,8 @@ import java.util.Objects;
  * signature of the existing methods.
  */
 public class ChessGame {
+    boolean gameOver = false;
+
     private TeamColor turn;
     private ChessBoard board;
 
@@ -43,6 +45,14 @@ public class ChessGame {
      */
     public void setTeamTurn(TeamColor team) {
         turn = team;
+    }
+
+    public void setGameOver(boolean gameOver){
+        gameOver = true;
+    }
+
+    public boolean getGameOver(){
+        return gameOver;
     }
 
     /**
@@ -142,20 +152,9 @@ public class ChessGame {
         ChessPiece piece = board.getPiece(startPosition);
         TeamColor color = piece.getTeamColor();
         int row = rowBasedColor(color);
-        System.out.println("=== findCastlingMoves ===");
-        System.out.println("isKing: " + (piece.getPieceType() == ChessPiece.PieceType.KING));
-        System.out.println("hasMoved: " + hasMoved(startPosition));
-        System.out.println("isInCheck: " + isInCheck(color));
-        System.out.println("wKingMoved: " + wKingMoved);
-        System.out.println("wLeftRookMoved: " + wLeftRookMoved);
-        System.out.println("wRightRookMoved: " + wRightRookMoved);
         if(piece.getPieceType() == ChessPiece.PieceType.KING && !hasMoved(startPosition) && !isInCheck(color)){
             //check each of the rook sides:
             ChessPosition leftRook = new ChessPosition(row, 1), rightRook = new ChessPosition(row, 8);
-            System.out.println("leftRookPiece: " + board.getPiece(leftRook));
-            System.out.println("rightRookPiece: " + board.getPiece(rightRook));
-            System.out.println("leftCastle: " + (board.getPiece(leftRook) != null && leftCastle(leftRook, color)));
-            System.out.println("rightCastle: " + (board.getPiece(rightRook) != null && rightCastle(rightRook, color)));
 
             if(board.getPiece(leftRook) != null && leftCastle(leftRook, color)){
                 ChessPosition newKingPosition = new ChessPosition(row, 3);
@@ -266,7 +265,10 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
-        // do i need to promote a piece when it is a pawn?
+        if (gameOver) {
+            throw new InvalidMoveException("This game is over. No more moves can be made.");
+        }
+
        ChessPosition startPosition = move.getStartPosition(), endPosition = move.getEndPosition();
        ChessPiece piece = board.getPiece(startPosition);
 
