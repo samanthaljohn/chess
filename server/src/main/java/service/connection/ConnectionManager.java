@@ -12,25 +12,25 @@ import java.util.HashMap;
 public class ConnectionManager {
     private final Map<Integer, List<Connection>> gameConnections;
 
-    private boolean gameHasConnections(int gameID){
-        if (gameConnections.get(gameID) == null){
+    private boolean gameHasConnections(int gameID) {
+        if (gameConnections.get(gameID) == null) {
             return false;
         }
         return true;
     }
 
-    private boolean connectionInConnections(int gameID, Connection connection){
-       if (gameConnections.get(gameID).contains(connection)){
-           return true;
-       }
-       return false;
+    private boolean connectionInConnections(int gameID, Connection connection) {
+        if (gameConnections.get(gameID).contains(connection)) {
+            return true;
+        }
+        return false;
     }
 
-    public ConnectionManager(){
+    public ConnectionManager() {
         this.gameConnections = new HashMap<>();
     }
 
-    public void addConnection(int gameID, Connection connection){
+    public void addConnection(int gameID, Connection connection) {
         if (gameHasConnections(gameID)) {
             gameConnections.get(gameID).add(connection);
 
@@ -43,28 +43,8 @@ public class ConnectionManager {
     }
 
     public void removeConnection(int gameID, Connection connection) {
-        if (gameHasConnections(gameID) && connectionInConnections(gameID, connection)){
+        if (gameHasConnections(gameID) && connectionInConnections(gameID, connection)) {
             gameConnections.get(gameID).remove(connection);
-        }
-    }
-
-    public void notifyAllButOne(int gameID, ServerMessage message, Connection connectionToExclude) throws Exception {
-        String json = new Gson().toJson(message);
-
-        List<Connection> connections = gameConnections.get(gameID);
-        if (connections == null){
-            return;
-        }
-
-        for (Connection existingConnection : connections){
-            Session session = existingConnection.session();
-            if (!existingConnection.equals(connectionToExclude)) {
-                try {
-                    session.getBasicRemote().sendText(json);
-                } catch (Exception e) {
-                    System.out.println(e.getMessage());
-                }
-            }
         }
     }
 
@@ -76,6 +56,45 @@ public class ConnectionManager {
             session.getBasicRemote().sendText(json);
         } catch (Exception e){
             System.out.println(e.getMessage());
+        }
+    }
+
+    public void notifyAll(int gameID, ServerMessage message) throws Exception {
+        String json = new Gson().toJson(message);
+
+        List<Connection> connections = gameConnections.get(gameID);
+        if (connections == null) {
+            return;
+        }
+
+        for (Connection existingConnection : connections){
+            Session session = existingConnection.session();
+            try {
+                session.getBasicRemote().sendText(json);
+            } catch (Exception e){
+                System.out.println(e.getMessage());
+            }
+        }
+    }
+
+
+    public void notifyAllButOne(int gameID, ServerMessage message, Connection connectionToExclude) throws Exception {
+        String json = new Gson().toJson(message);
+
+        List<Connection> connections = gameConnections.get(gameID);
+        if (connections == null) {
+            return;
+        }
+
+        for (Connection existingConnection : connections) {
+            Session session = existingConnection.session();
+            if (!existingConnection.equals(connectionToExclude)) {
+                try {
+                    session.getBasicRemote().sendText(json);
+                } catch (Exception e) {
+                    System.out.println(e.getMessage());
+                }
+            }
         }
     }
 }
