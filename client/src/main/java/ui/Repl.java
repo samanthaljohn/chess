@@ -27,6 +27,7 @@ public class Repl implements NotificationHandler {
     private final ServerFacade facade;
     private final WebSocketFacade webFacade;
     private String authToken;
+    private String currentPlayerColor;
     private HashMap<Integer, Integer> gameIDs;
 
     public Repl(int port) throws ResponseException {
@@ -35,6 +36,7 @@ public class Repl implements NotificationHandler {
         this.webFacade = new WebSocketFacade(port, this);
 
         this.authToken = null;
+        this.currentPlayerColor = "";
         this.gameIDs = new HashMap<>();
     }
 
@@ -180,16 +182,16 @@ public class Repl implements NotificationHandler {
         System.out.print(RESET_TEXT_COLOR);
     }
 
-    private void drawChessBoard(String playerColor){
+    private void drawChessBoard(ChessBoard board, String playerColor){
         var out = new PrintStream(System.out, true, StandardCharsets.UTF_8);
-        ChessBoard board = new ChessBoard();
-        board.resetBoard();
-
         DrawChessGame.drawChessBoard(out, board, playerColor);
     }
 
     public void loadGame(LoadGameMessage message){
-        drawChessBoard();
+        ChessGame game = message.getGame();
+        ChessBoard board = game.getBoard();
+
+        drawChessBoard(board, currentPlayerColor.toUpperCase());
     }
 
     public void notificationMessage(NotificationMessage notification){
@@ -310,11 +312,11 @@ public class Repl implements NotificationHandler {
                 if (gameID == -1) { continue; }
 
                 try {
-                    String playerColor = info[2].toUpperCase();
+                    currentPlayerColor = info[2].toUpperCase();
 
-                    facade.joinGame(authToken, playerColor, gameID);
-                    printBold("Successfully joined game as " + playerColor.toLowerCase() + "\n");
-                    drawChessBoard(playerColor);
+                    facade.joinGame(authToken, currentPlayerColor, gameID);
+                    printBold("Successfully joined game as " + currentPlayerColor.toLowerCase() + "\n");
+                    webFacade.connect(authToken, gameID);
                     gamePlay();
                 } catch (ResponseException e){
                     printErrorReport(e.getMessage());
@@ -325,7 +327,12 @@ public class Repl implements NotificationHandler {
                 int gameID = validateGameID(info);
                 if (gameID == -1) { continue; }
 
-                drawChessBoard("WHITE");
+                try {
+                    currentPlayerColor = "WHITE";
+                    webFacade.connect(authToken, gameID);
+                } catch (ResponseException e) {
+                    printErrorReport(e.getMessage());
+                }
                 gamePlay();
             } else if (command.equals("logout")){
                 if (quit("Are you sure you would like to logout (and return to the previous menu)? <y/n>")){
