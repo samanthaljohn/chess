@@ -266,7 +266,7 @@ public class ChessGame {
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
         if (gameOver) {
-            throw new InvalidMoveException("This game is over. No more moves can be made.");
+            throw new InvalidMoveException("Error. This game is over. No more moves can be made.");
         }
 
        ChessPosition startPosition = move.getStartPosition(), endPosition = move.getEndPosition();
@@ -328,7 +328,7 @@ public class ChessGame {
            if (isInCheck(color)){
                board.addPiece(startPosition, piece);
                board.addPiece(endPosition, captured);
-               throw new InvalidMoveException();
+               throw new InvalidMoveException("You may not move into check.");
            }
             // change team colors
            if (turn == TeamColor.WHITE){
@@ -361,7 +361,7 @@ public class ChessGame {
                }
            }
        } else {
-           throw new InvalidMoveException();
+           throw new InvalidMoveException("Move is invalid.");
        }
     }
 
