@@ -1,16 +1,72 @@
 package client;
 
-import jakarta.websocket.Session;
+import chess.ChessMove;
+import com.google.gson.Gson;
+import jakarta.websocket.*;
+import org.eclipse.jetty.server.Authentication;
+import ui.NotificationHandler;
+import websocket.commands.UserGameCommand;
+import websocket.messages.ErrorMessage;
+import websocket.messages.LoadGameMessage;
+import websocket.messages.NotificationMessage;
+import websocket.messages.ServerMessage;
 
-public class WebSocketFacade {
+import java.net.URI;
+
+public class WebSocketFacade extends Endpoint {
     Session session;
+    NotificationHandler notificationHandler;
 
-    public WebSocketFacade(String url) throws ResponseException {
+    public WebSocketFacade(String url, NotificationHandler notificationHandler) throws ResponseException {
+        this.notificationHandler = notificationHandler;
 
+        try {
+            url = url.replace("http", "ws");
+            URI socketURI = new URI(url + "/ws");
+
+            WebSocketContainer container = ContainerProvider.getWebSocketContainer();
+            this.session = container.connectToServer(this, socketURI);
+
+            this.session.addMessageHandler(new MessageHandler.Whole<String>() {
+                public void onMessage(String message) {
+                    ServerMessage.ServerMessageType type = new Gson().fromJson(message, ServerMessage.class).getServerMessageType();
+                    switch (type) {
+                        case LOAD_GAME:
+                            LoadGameMessage loadGameMessage = new Gson().fromJson(message, LoadGameMessage.class);
+                            notificationHandler.loadGame(loadGameMessage);
+                            break;
+                        case NOTIFICATION:
+                            NotificationMessage notification = new Gson().fromJson(message, NotificationMessage.class);
+                            notificationHandler.notificationMessage(notification);
+                            break;
+                        case ERROR:
+                            ErrorMessage errorMessage = new Gson().fromJson(message, ErrorMessage.class);
+                            notificationHandler.error(errorMessage);
+                            break;
+                    };
+                }
+            });
+        } catch (Exception e) {
+            throw new ResponseException(e.getMessage());
+        }
     }
 
-    public void connect() throws ResponseException {}
-    public void makeMove() throws ResponseException {}
-    public void resign() throws ResponseException {}
-    public void leave () throws ResponseException {}
+    public void connect(String authToken, int gameID) throws ResponseException {
+        UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, gameID);
+        String json = new Gson().toJson(command);
+
+        try {
+            session.getBasicRemote().sendText(json);
+        } catch (Exception e) {
+            throw new ResponseException(e.getMessage());
+        }
+    }
+
+    public void makeMove(String authToken, int gameID, ChessMove move) throws ResponseException {}
+    public void resign(String authToken, int gameID) throws ResponseException {}
+    public void leave (String authToken, int gameID) throws ResponseException {}
+
+    @Override
+    public void onOpen(Session session, EndpointConfig config) {
+    }
 }
