@@ -1,8 +1,6 @@
 package ui;
 
-import chess.ChessBoard;
-import chess.ChessGame;
-import chess.ChessPosition;
+import chess.*;
 import client.ResponseException;
 import client.ServerFacade;
 import client.WebSocketFacade;
@@ -21,7 +19,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Scanner;
 
-import static java.lang.Math.abs;
 import static ui.EscapeSequences.*;
 
 public class Repl implements NotificationHandler {
@@ -90,9 +87,9 @@ public class Repl implements NotificationHandler {
 
     private void preloginHelpMenu(){
         String[][] preLoginMenu = {{"register <USERNAME> <PASSWORD> <EMAIL>", "to create an account"},
-                {"login <USERNAME> <PASSWORD>", "to play chess"},
-                {"quit", "the application"},
-                {"help", "with possible commands"}};
+            {"login <USERNAME> <PASSWORD>", "to play chess"},
+            {"quit", "the application"},
+            {"help", "with possible commands"}};
 
         printFormattedMenu(preLoginMenu);
     }
@@ -110,15 +107,24 @@ public class Repl implements NotificationHandler {
     }
 
     private void gamePlayHelpMenu(){
-        String[][] gamePlayMenu = {{"move <start position> <end position>", "make a move in the current game (e.g. move e2 e4)"},
-                {"redraw", "the current board state"},
-                {"highlight", "legal moves"},
-                {"resign", "and forfeit the current match"},
-                {"leave", "the current game"},
-                {"quit", "return to previous menu"},
-                {"help", "with possible commands"}};
+        String[][] gamePlayMenu = {{"move <piece position> <end position>", "make a move in the current game (e.g. move e2 e4)"},
+            {"redraw", "the current board state"},
+            {"highlight <piece position>", "current position and legal moves"},
+            {"resign", "and forfeit the current match"},
+            {"leave", "the current game"},
+            {"quit", "return to previous menu"},
+            {"help", "with possible commands"}};
 
         printFormattedMenu(gamePlayMenu);
+    }
+
+    private void promotionPieceOptionMenu(){
+        String[][] promotionPieceOptions = {{"queen", "q"},
+            {"bishop", "b"},
+            {"rook", "r"},
+            {"knight", "k"}};
+
+        printFormattedMenu(promotionPieceOptions);
     }
 
     private boolean validateArgCount(String[] args, int expectedNum, String message){
@@ -194,6 +200,56 @@ public class Repl implements NotificationHandler {
         int row = Character.getNumericValue(position.charAt(1));
 
         return new ChessPosition(row, col);
+    }
+
+    private boolean isPromotionMove(ChessPosition startPos, ChessPosition endPos){
+        ChessPiece piece = currentBoard.getPiece(startPos);
+        ChessPiece.PieceType type = piece.getPieceType();
+
+        int promotionRow = 0;
+        switch (currentPlayerColor){
+            case "WHITE":
+                promotionRow = 8;
+                break;
+            case "BLACK":
+                promotionRow = 1;
+                break;
+        }
+
+        if (type == ChessPiece.PieceType.PAWN && endPos.getRow() == promotionRow) { return true; }
+
+        return false;
+    }
+
+    private ChessPiece.PieceType getPromotionPieceType(){
+        ChessPiece.PieceType type = null;
+
+        while (true){
+            System.out.println("Your move is eligible for a promotion! What piece type would you like to promote your pawn to?");
+            promotionPieceOptionMenu();
+
+            String answer = scanner.nextLine();
+
+            switch (answer){
+                case "q":
+                    type = ChessPiece.PieceType.QUEEN;
+                    break;
+                case "b":
+                    type = ChessPiece.PieceType.BISHOP;
+                    break;
+                case "r":
+                    type = ChessPiece.PieceType.ROOK;
+                    break;
+                case "k":
+                    type = ChessPiece.PieceType.KNIGHT;
+                    break;
+                default:
+                    System.out.println("Not a valid promotion piece type.");
+            }
+
+            if (type != null){ break;}
+        }
+        return type;
     }
 
     private void drawChessBoard(ChessBoard board, String playerColor){
@@ -387,8 +443,32 @@ public class Repl implements NotificationHandler {
             if (command.equals("move")){
                 if(!validateArgCount(info, 3, "Please specify the starting and ending positions for the move you are trying to make.")){ continue; }
 
+                ChessPosition startPos = convertPosition(info[1]);
+                ChessPiece piece = currentBoard.getPiece(startPos);
 
+                if (piece == null) {
+                    printErrorReport("No piece at provided start position.");
+                    continue;
+                }
 
+                if (!piece.getTeamColor().toString().equals(currentPlayerColor)){
+                    printErrorReport("You may not move your opponents pieces.");
+                    continue;
+                }
+
+                ChessPosition endPos = convertPosition(info[2]);
+                ChessPiece.PieceType promotionType = null;
+
+                if (isPromotionMove(startPos, endPos)) {
+                    promotionType = getPromotionPieceType();
+                }
+
+                ChessMove move = new ChessMove(startPos, endPos, promotionType);
+                try {
+                    webFacade.makeMove(authToken, gameID, move);
+                } catch (ResponseException e) {
+                    printErrorReport(e.getMessage());
+                }
             }  else if (command.equals("redraw")){
                 if(!validateArgCount(info, 1, "Type redraw to redraw the current chess board;")) { continue; }
 
