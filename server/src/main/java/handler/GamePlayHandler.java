@@ -1,9 +1,7 @@
 package handler;
 
-import chess.ChessMove;
 import chess.InvalidMoveException;
 import com.google.gson.Gson;
-import dataaccess.BadRequestException;
 import dataaccess.DataAccessException;
 import io.javalin.websocket.*;
 import org.eclipse.jetty.websocket.api.Session;
