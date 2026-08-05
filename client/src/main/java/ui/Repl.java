@@ -4,7 +4,6 @@ import chess.*;
 import client.ResponseException;
 import client.ServerFacade;
 import client.WebSocketFacade;
-import dataaccess.BadRequestException;
 import model.PublicGameData;
 import result.CreateGameResult;
 import result.ListGamesResult;
@@ -291,6 +290,7 @@ public class Repl implements NotificationHandler {
 
         if (highlightedSquares == null){ highlightedSquares = new HashSet<>(); }
 
+        System.out.println();
         DrawChessGame.drawChessBoard(out, board, playerColor, highlightedSquares, highlightedPiecePosition);
         gamePlayHelpMenu();
     }
@@ -312,7 +312,7 @@ public class Repl implements NotificationHandler {
 
     public void error(ErrorMessage errorMessage){
         String message = errorMessage.getErrorMessage();
-        printErrorReport(message);
+        printGamePlayErrorReport(message);
     }
 
     public void preLoginRepl(){
@@ -426,7 +426,7 @@ public class Repl implements NotificationHandler {
                     facade.joinGame(authToken, currentPlayerColor, gameID);
                     printBold("Successfully joined game as " + currentPlayerColor.toLowerCase() + "\n");
                     webFacade.connect(authToken, gameID);
-                    gamePlay(gameID);
+                    gamePlayRepl(gameID);
                 } catch (ResponseException e){
                     printErrorReport(e.getMessage());
                 } catch (Exception e){ printServerErrorReport();}
@@ -442,7 +442,7 @@ public class Repl implements NotificationHandler {
                 } catch (ResponseException e) {
                     printErrorReport(e.getMessage());
                 }
-                gamePlay(gameID);
+                gamePlayRepl(gameID);
             } else if (command.equals("logout")){
                 if (quit("Are you sure you would like to logout (and return to the previous menu)? <y/n>")){
                     try {
@@ -468,7 +468,7 @@ public class Repl implements NotificationHandler {
         return quitApplication;
     }
 
-    public void gamePlay(int gameID){
+    public void gamePlayRepl(int gameID){
         while (true){
             String line = scanner.nextLine().trim();
             var info = line.split("\\s+");
