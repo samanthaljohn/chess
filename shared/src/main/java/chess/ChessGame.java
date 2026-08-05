@@ -47,7 +47,7 @@ public class ChessGame {
         turn = team;
     }
 
-    public void setGameOver(boolean gameOver){
+    public void setGameOver(boolean gameStatus){
         gameOver = true;
     }
 
