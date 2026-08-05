@@ -2,6 +2,7 @@ package ui;
 
 import chess.ChessBoard;
 import chess.ChessGame;
+import chess.ChessPosition;
 import client.ResponseException;
 import client.ServerFacade;
 import client.WebSocketFacade;
@@ -20,6 +21,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Scanner;
 
+import static java.lang.Math.abs;
 import static ui.EscapeSequences.*;
 
 public class Repl implements NotificationHandler {
@@ -108,7 +110,7 @@ public class Repl implements NotificationHandler {
     }
 
     private void gamePlayHelpMenu(){
-        String[][] gamePlayMenu = {{"move", "make a move in the current game"},
+        String[][] gamePlayMenu = {{"move <start position> <end position>", "make a move in the current game (e.g. move e2 e4)"},
                 {"redraw", "the current board state"},
                 {"highlight", "legal moves"},
                 {"resign", "and forfeit the current match"},
@@ -185,6 +187,13 @@ public class Repl implements NotificationHandler {
             gameNum++;
         }
         System.out.print(RESET_TEXT_COLOR);
+    }
+
+    private ChessPosition convertPosition(String position) {
+        int col = position.charAt(0) - 'a' + 1;
+        int row = Character.getNumericValue(position.charAt(1));
+
+        return new ChessPosition(row, col);
     }
 
     private void drawChessBoard(ChessBoard board, String playerColor){
@@ -376,6 +385,9 @@ public class Repl implements NotificationHandler {
 
             String command = info[0].toLowerCase();
             if (command.equals("move")){
+                if(!validateArgCount(info, 3, "Please specify the starting and ending positions for the move you are trying to make.")){ continue; }
+
+
 
             }  else if (command.equals("redraw")){
                 if(!validateArgCount(info, 1, "Type redraw to redraw the current chess board;")) { continue; }
