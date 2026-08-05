@@ -48,10 +48,9 @@ public class ConnectionManager {
         }
     }
 
-    public void notifyRoot(ServerMessage message, Connection connectionToSend) {
+    public void notifyRoot(ServerMessage message, Session session) {
         String json = new Gson().toJson(message);
 
-        Session session = connectionToSend.session();
         try {
             session.getRemote().sendString(json);
         } catch (Exception e){
