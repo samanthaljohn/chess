@@ -1,13 +1,18 @@
 package ui;
 
 import chess.ChessBoard;
+import chess.ChessGame;
 import client.ResponseException;
 import client.ServerFacade;
+import client.WebSocketFacade;
 import model.PublicGameData;
 import result.CreateGameResult;
 import result.ListGamesResult;
 import result.LoginResult;
 import result.RegisterResult;
+import websocket.messages.ErrorMessage;
+import websocket.messages.LoadGameMessage;
+import websocket.messages.NotificationMessage;
 
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
@@ -17,15 +22,17 @@ import java.util.Scanner;
 
 import static ui.EscapeSequences.*;
 
-public class Repl {
+public class Repl implements NotificationHandler {
     private final Scanner scanner;
     private final ServerFacade facade;
+    private final WebSocketFacade webFacade;
     private String authToken;
     private HashMap<Integer, Integer> gameIDs;
 
-    public Repl(int port){
+    public Repl(int port) throws ResponseException {
         this.scanner = new Scanner(System.in);
         this.facade = new ServerFacade(port);
+        this.webFacade = new WebSocketFacade(port, this);
 
         this.authToken = null;
         this.gameIDs = new HashMap<>();
@@ -46,6 +53,14 @@ public class Repl {
     private void printErrorReport(String message){
         System.out.print(SET_TEXT_ITALIC);
         System.out.println(message);
+        System.out.print(RESET_TEXT_ITALIC);
+    }
+
+    private void printNotification(String message){
+        System.out.print(SET_TEXT_ITALIC);
+        System.out.print(SET_TEXT_COLOR_GREEN);
+        System.out.println(message);
+        System.out.print(RESET_TEXT_COLOR);
         System.out.print(RESET_TEXT_ITALIC);
     }
 
@@ -171,6 +186,20 @@ public class Repl {
         board.resetBoard();
 
         DrawChessGame.drawChessBoard(out, board, playerColor);
+    }
+
+    public void loadGame(LoadGameMessage message){
+        drawChessBoard();
+    }
+
+    public void notificationMessage(NotificationMessage notification){
+        String message = notification.getMessage();
+        printNotification(message);
+    }
+
+    public void error(ErrorMessage errorMessage){
+        String message = errorMessage.getErrorMessage();
+        printErrorReport(message);
     }
 
     public void preLoginRepl(){
