@@ -18,6 +18,14 @@ public class WebSocketFacade extends Endpoint {
     Session session;
     NotificationHandler notificationHandler;
 
+    private void sendJson(String json) throws ResponseException {
+        try {
+            session.getBasicRemote().sendText(json);
+        } catch (Exception e) {
+            throw new ResponseException(e.getMessage());
+        }
+    }
+
     public WebSocketFacade(String url, NotificationHandler notificationHandler) throws ResponseException {
         this.notificationHandler = notificationHandler;
 
@@ -56,26 +64,28 @@ public class WebSocketFacade extends Endpoint {
         UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, gameID);
         String json = new Gson().toJson(command);
 
-        try {
-            session.getBasicRemote().sendText(json);
-        } catch (Exception e) {
-            throw new ResponseException(e.getMessage());
-        }
+        sendJson(json);
     }
 
     public void makeMove(String authToken, int gameID, ChessMove move) throws ResponseException {
         MakeMoveCommand command = new MakeMoveCommand(UserGameCommand.CommandType.MAKE_MOVE, authToken, gameID, move);
         String json = new Gson().toJson(command);
 
-        try {
-            session.getBasicRemote().sendText(json);
-        } catch (Exception e) {
-            throw new ResponseException(e.getMessage());
-        }
+        sendJson(json);
     }
 
-    public void resign(String authToken, int gameID) throws ResponseException {}
-    public void leave (String authToken, int gameID) throws ResponseException {}
+    public void resign(String authToken, int gameID) throws ResponseException {
+        UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.RESIGN, authToken, gameID);
+        String json = new Gson().toJson(command);
+
+        sendJson(json);
+    }
+    public void leave (String authToken, int gameID) throws ResponseException {
+        UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.LEAVE, authToken, gameID);
+        String json = new Gson().toJson(command);
+
+        sendJson(json);
+    }
 
     @Override
     public void onOpen(Session session, EndpointConfig config) {
