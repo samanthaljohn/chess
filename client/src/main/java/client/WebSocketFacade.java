@@ -16,6 +16,7 @@ import java.net.URI;
 
 public class WebSocketFacade extends Endpoint {
     Session session;
+    private final String url;
     NotificationHandler notificationHandler;
 
     private void sendJson(String json) throws ResponseException {
@@ -26,12 +27,13 @@ public class WebSocketFacade extends Endpoint {
         }
     }
 
-    public WebSocketFacade(String url, NotificationHandler notificationHandler) throws ResponseException {
+    public WebSocketFacade(int port, NotificationHandler notificationHandler) throws ResponseException {
+        this.url = "http://localhost:" + port;
         this.notificationHandler = notificationHandler;
 
         try {
-            url = url.replace("http", "ws");
-            URI socketURI = new URI(url + "/ws");
+            String webSocketUrl = url.replace("http", "ws");
+            URI socketURI = new URI(webSocketUrl + "/ws");
 
             WebSocketContainer container = ContainerProvider.getWebSocketContainer();
             this.session = container.connectToServer(this, socketURI);
