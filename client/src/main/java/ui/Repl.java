@@ -15,9 +15,7 @@ import websocket.messages.NotificationMessage;
 
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Scanner;
+import java.util.*;
 
 import static ui.EscapeSequences.*;
 
@@ -254,9 +252,23 @@ public class Repl implements NotificationHandler {
         return type;
     }
 
-    private void drawChessBoard(ChessBoard board, String playerColor){
+    private HashSet<ChessPosition> getLegalEndPos(ChessPosition startPos) {
+        Collection<ChessMove> legalMoves = currentGame.validMoves(startPos);
+
+        HashSet<ChessPosition> legalEndPos = new HashSet<>();
+        legalEndPos.add(startPos);
+
+        for (ChessMove move : legalMoves) {
+            ChessPosition endPos = move.getEndPosition();
+            legalEndPos.add(endPos);
+        }
+        return legalEndPos;
+    }
+
+    private void drawChessBoard(ChessBoard board, String playerColor, HashSet<ChessPosition> highlightedSquares){
         var out = new PrintStream(System.out, true, StandardCharsets.UTF_8);
-        DrawChessGame.drawChessBoard(out, board, playerColor);
+        if (highlightedSquares == null){ highlightedSquares = new HashSet<>(); }
+        DrawChessGame.drawChessBoard(out, board, playerColor, highlightedSquares);
     }
 
     public void loadGame(LoadGameMessage message){
@@ -266,7 +278,7 @@ public class Repl implements NotificationHandler {
         ChessBoard board = game.getBoard();
         currentBoard = board;
 
-        drawChessBoard(currentBoard, currentPlayerColor.toUpperCase());
+        drawChessBoard(currentBoard, currentPlayerColor.toUpperCase(), null);
     }
 
     public void notificationMessage(NotificationMessage notification){
@@ -476,7 +488,7 @@ public class Repl implements NotificationHandler {
             }  else if (command.equals("redraw")){
                 if(!validateArgCount(info, 1, "Type redraw to redraw the current chess board;")) { continue; }
 
-                drawChessBoard(currentBoard, currentPlayerColor);
+                drawChessBoard(currentBoard, currentPlayerColor, null);
             } else if (command.equals("highlight")){
                 if(!validateArgCount(info, 2, "Please specify the position of the piece for which you would like to see legal moves.")) { continue; }
 
@@ -488,9 +500,8 @@ public class Repl implements NotificationHandler {
                     continue;
                 }
 
-                Collection<ChessMove> legalMoves = currentGame.validMoves(startPos);
-
-
+                HashSet<ChessPosition> legalEndPos = getLegalEndPos(startPos);
+                drawChessBoard(currentBoard, currentPlayerColor, legalEndPos);
             } else if (command.equals("resign")) {
                 if(!validateArgCount(info, 1, "Type resign to resign.")) { continue; }
 
