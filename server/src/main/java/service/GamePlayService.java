@@ -1,6 +1,8 @@
 package service;
 
 import chess.ChessGame;
+import chess.ChessMove;
+import chess.InvalidMoveException;
 import dataaccess.BadRequestException;
 import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
@@ -10,6 +12,7 @@ import model.AuthData;
 import model.GameData;
 import service.connection.Connection;
 import service.connection.ConnectionManager;
+import websocket.commands.MakeMoveCommand;
 import websocket.commands.UserGameCommand;
 import websocket.messages.LoadGameMessage;
 import websocket.messages.NotificationMessage;
@@ -39,7 +42,27 @@ public class GamePlayService {
         return game;
     }
 
-    private GameData createUpdatedGameData(AuthData auth, GameData gameData) {
+    private ChessGame.TeamColor getOppositeTeamColor(ChessGame.TeamColor color) {
+        switch (color){
+            case WHITE: return ChessGame.TeamColor.BLACK;
+            case BLACK: return ChessGame.TeamColor.WHITE;
+        }
+        return null;
+    }
+
+    private String isAtRiskMessage(ChessGame.TeamColor color, ChessGame game){
+        if (game.isInCheckmate(color)){
+            return color + " is in checkmate";
+        } else if (game.isInCheck(color)){
+            return color + " is in check";
+        } else if (game.isInStalemate(color)){
+            return "Game is in stalemate";
+        } else {
+            return "";
+        }
+    }
+
+    private GameData createResignedGameData(AuthData auth, GameData gameData) {
         String username = auth.username();
 
         String white = gameData.whiteUsername();
@@ -54,6 +77,10 @@ public class GamePlayService {
         }
 
         return new GameData(gameData.gameID(), white, black, gameData.gameName(), gameData.game());
+    }
+
+    private GameData createNewGameData(GameData data){
+        return new GameData(data.gameID(), data.whiteUsername(), data.blackUsername(), data.gameName(), data.game());
     }
 
     private Connection createConnection(AuthData auth, GameData gameData, Session session){
@@ -91,6 +118,11 @@ public class GamePlayService {
         return outputMessage;
     }
 
+    private String generateMoveMessage(Connection connection, ChessMove move){
+        String username = connection.username();
+        return username + " has made move: " + move.toString();
+    }
+
     public GamePlayService(DataAccess dataAccess){
         this.dataAccess = dataAccess;
         this.connectionManager = new ConnectionManager();
@@ -114,9 +146,40 @@ public class GamePlayService {
         connectionManager.notifyAllButRoot(gameID, notificationMessage, connection);
     }
 
-    public void makeMove(UserGameCommand command, Session session) throws DataAccessException {
+    public void makeMove(MakeMoveCommand command, Session session) throws DataAccessException, InvalidMoveException {
         String authToken = command.getAuthToken();
-        getAuthData(authToken);
+        AuthData authData = getAuthData(authToken);
+
+        int gameID = command.getGameID();
+        GameData gameData = getGameData(gameID);
+        ChessGame game = gameData.game();
+
+        Connection connection = createConnection(authData, gameData, session);
+        if(connection.playerStatus().equals("OBSERVER")){
+            throw new BadRequestException("Observers may not make moves.");
+        }
+        if (connection.playerColor() != game.getTeamTurn()) {
+            throw new BadRequestException("It is not your turn");
+        }
+
+        ChessMove move = command.getMove();
+        game.makeMove(move);
+        GameData newGameData = createNewGameData(gameData);
+        dataAccess.updateGame(newGameData);
+
+        LoadGameMessage loadGameMessage = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, newGameData.game());
+        connectionManager.notifyAll(gameID, loadGameMessage);
+
+        String moveMessage = generateMoveMessage(connection, move);
+        NotificationMessage moveNotificationMessage = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, moveMessage);
+        connectionManager.notifyAllButRoot(gameID, moveNotificationMessage, connection);
+
+        ChessGame.TeamColor atRiskColor = getOppositeTeamColor(connection.playerColor());
+        String riskMessage = isAtRiskMessage(atRiskColor, newGameData.game());
+        if (!riskMessage.isEmpty()){
+            NotificationMessage riskNotificationMessage = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, riskMessage);
+            connectionManager.notifyAll(gameID, riskNotificationMessage);
+        }
     }
 
     public void leave(UserGameCommand command, Session session) throws DataAccessException {
@@ -126,7 +189,7 @@ public class GamePlayService {
         int gameID = command.getGameID();
         GameData gameData = getGameData(gameID);
 
-        GameData newGameData = createUpdatedGameData(authData, gameData);
+        GameData newGameData = createResignedGameData(authData, gameData);
         if (newGameData != null){
             dataAccess.updateGame(newGameData);
         }
@@ -159,7 +222,7 @@ public class GamePlayService {
         }
 
         game.setGameOver(true);
-        GameData newGameData = new GameData(gameID, gameData.whiteUsername(), gameData.blackUsername(), gameData.gameName(), game);
+        GameData newGameData = createNewGameData(gameData);
         dataAccess.updateGame(newGameData);
 
         NotificationMessage notificationMessage = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, authData.username() + " has resigned");
