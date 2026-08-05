@@ -3,12 +3,15 @@ package handler;
 import chess.ChessMove;
 import chess.InvalidMoveException;
 import com.google.gson.Gson;
+import dataaccess.BadRequestException;
 import dataaccess.DataAccessException;
 import io.javalin.websocket.*;
 import org.eclipse.jetty.websocket.api.Session;
 import service.GamePlayService;
 import websocket.commands.MakeMoveCommand;
 import websocket.commands.UserGameCommand;
+import websocket.messages.ErrorMessage;
+import websocket.messages.ServerMessage;
 
 public class GamePlayHandler implements WsConnectHandler, WsMessageHandler, WsCloseHandler {
     private final GamePlayService gamePlayService;
@@ -43,6 +46,17 @@ public class GamePlayHandler implements WsConnectHandler, WsMessageHandler, WsCl
     @Override
     public void handleMessage(WsMessageContext context) {
         UserGameCommand command = new Gson().fromJson(context.message(), UserGameCommand.class);
+        if (command.getCommandType() == UserGameCommand.CommandType.MAKE_MOVE){
+            command = new Gson().fromJson(context.message(), MakeMoveCommand.class);
+        }
+
+        try {
+            callCommand(command, context.session);
+        } catch (DataAccessException | InvalidMoveException e) {
+            String message = e.getMessage();
+            ErrorMessage errorMessage = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, message);
+            gamePlayService.reportErrorToRoot(errorMessage, context.session);
+        }
     }
 
     @Override
