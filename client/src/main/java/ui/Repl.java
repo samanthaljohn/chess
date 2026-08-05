@@ -378,10 +378,14 @@ public class Repl implements NotificationHandler {
             if (command.equals("move")){
 
             }  else if (command.equals("redraw")){
+                if(!validateArgCount(info, 1, "Type redraw to redraw the current chess board;")) { continue; }
 
+                drawChessBoard(currentBoard, currentPlayerColor);
             } else if (command.equals("highlight")){
 
             } else if (command.equals("resign")) {
+                if(!validateArgCount(info, 1, "Type resign to resign.")) { continue; }
+
                 System.out.println("Are you sure you want to resign? (No more moves can be made. You may view the final board state until you leave). <y/n>");
                 String answer = scanner.nextLine();
 
@@ -393,6 +397,8 @@ public class Repl implements NotificationHandler {
                     }
                 }
             } else if (command.equals("leave")){
+                if (!validateArgCount(info, 1, "Type leave to leave this chess game.")) { continue; }
+
                 System.out.println("Are you sure you want to leave this chess game (and return to the previous menu)? <y/n>");
                 String answer = scanner.nextLine();
 
