@@ -58,7 +58,5 @@ public class GamePlayHandler implements WsConnectHandler, WsMessageHandler, WsCl
     }
 
     @Override
-    public void handleClose(WsCloseContext context) {
-        System.out.println("Websocket closed");
-    }
+    public void handleClose(WsCloseContext context) {}
 }

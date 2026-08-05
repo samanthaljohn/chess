@@ -68,9 +68,9 @@ public class GamePlayService {
         String white = gameData.whiteUsername();
         String black = gameData.blackUsername();
 
-        if (white.equals(username)){
+        if (white != null && white.equals(username)){
             white = null;
-        } else if (black.equals(username)){
+        } else if (black != null && black.equals(username)){
             black = null;
         } else {
             return null;
@@ -89,10 +89,10 @@ public class GamePlayService {
         String playerStatus;
         ChessGame.TeamColor color;
 
-        if (gameData.whiteUsername().equals(username)){
+        if (gameData.whiteUsername() != null && username.equals(gameData.whiteUsername())){
             playerStatus = "PLAYER";
             color = ChessGame.TeamColor.WHITE;
-        } else if (gameData.blackUsername().equals(username)){
+        } else if (gameData.blackUsername() != null && username.equals(gameData.blackUsername())){
             playerStatus = "PLAYER";
             color = ChessGame.TeamColor.BLACK;
         } else {

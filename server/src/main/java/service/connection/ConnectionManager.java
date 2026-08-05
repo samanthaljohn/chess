@@ -19,7 +19,7 @@ public class ConnectionManager {
         return true;
     }
 
-    private boolean connectionInConnections(int gameID, Connection connection) {
+    public boolean connectionInConnections(int gameID, Connection connection) {
         if (gameConnections.get(gameID).contains(connection)) {
             return true;
         }
