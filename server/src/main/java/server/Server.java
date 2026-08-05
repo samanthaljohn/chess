@@ -7,12 +7,14 @@ import dataaccess.DataAccessException;
 import dataaccess.MySqlDataAccess;
 import handler.ClearHandler;
 import handler.GameHandler;
+import handler.GamePlayHandler;
 import handler.UserHandler;
 
 import io.javalin.*;
 
 import io.javalin.json.JsonMapper;
 import service.ClearService;
+import service.GamePlayService;
 import service.GameService;
 import service.UserService;
 
@@ -47,7 +49,6 @@ public class Server {
             throw new RuntimeException(e);
         }
 
-
         ClearService clearService = new ClearService(dataAccess);
         ClearHandler clearHandler = new ClearHandler(clearService);
 
@@ -56,6 +57,9 @@ public class Server {
 
         GameService gameService = new GameService(dataAccess);
         GameHandler gameHandler = new GameHandler(gameService);
+
+        GamePlayService gamePlayService = new GamePlayService(dataAccess);
+        GamePlayHandler gamePlayHandler = new GamePlayHandler(gamePlayService);
 
         javalin = Javalin.create(config -> {
             config.staticFiles.add("web");
@@ -66,7 +70,12 @@ public class Server {
         .delete("/session", userHandler::logout)
         .get("/game", gameHandler::listGames)
         .post("/game", gameHandler::createGame)
-        .put("/game", gameHandler::joinGame);
+        .put("/game", gameHandler::joinGame)
+        .ws("/ws", ws -> {
+            ws.onConnect(gamePlayHandler::handleConnect);
+            ws.onMessage(gamePlayHandler::handleMessage);
+            ws.onClose(gamePlayHandler::handleClose);
+        });
     }
 
     public int run(int desiredPort) {
