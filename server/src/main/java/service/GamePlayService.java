@@ -50,11 +50,18 @@ public class GamePlayService {
         return null;
     }
 
-    private String isAtRiskMessage(ChessGame.TeamColor color, ChessGame game){
+    private String getAtRiskUsername(GameData game, ChessGame.TeamColor color){
+        return switch (color) {
+            case WHITE -> game.whiteUsername();
+            case BLACK -> game.blackUsername();
+        };
+    }
+
+    private String isAtRiskMessage(ChessGame.TeamColor color, String username, ChessGame game){
         if (game.isInCheckmate(color)){
-            return color + " is in checkmate";
+            return username + " is in checkmate";
         } else if (game.isInCheck(color)){
-            return color + " is in check";
+            return username + " is in check";
         } else if (game.isInStalemate(color)){
             return "Game is in stalemate";
         } else {
@@ -179,7 +186,8 @@ public class GamePlayService {
         connectionManager.notifyAllButRoot(gameID, moveNotificationMessage, connection);
 
         ChessGame.TeamColor atRiskColor = getOppositeTeamColor(connection.playerColor());
-        String riskMessage = isAtRiskMessage(atRiskColor, newGameData.game());
+        String username = getAtRiskUsername(newGameData, atRiskColor);
+        String riskMessage = isAtRiskMessage(atRiskColor, username, newGameData.game());
         if (!riskMessage.isEmpty()){
             NotificationMessage riskNotificationMessage = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, riskMessage);
             connectionManager.notifyAll(gameID, riskNotificationMessage);
