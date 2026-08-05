@@ -7,7 +7,7 @@ import dataaccess.BadRequestException;
 import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
 import dataaccess.UnauthorizedException;
-import jakarta.websocket.Session;
+import org.eclipse.jetty.websocket.api.Session;
 import model.AuthData;
 import model.GameData;
 import service.connection.Connection;
