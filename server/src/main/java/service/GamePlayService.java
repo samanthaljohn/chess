@@ -141,6 +141,28 @@ public class GamePlayService {
 
     public void resign(UserGameCommand command, Session session) throws DataAccessException {
         String authToken = command.getAuthToken();
-        getAuthData(authToken);
+        AuthData authData = getAuthData(authToken);
+
+        int gameID = command.getGameID();
+        GameData gameData = getGameData(gameID);
+
+        ChessGame game = gameData.game();
+
+        if (game.getGameOver()) {
+            throw new BadRequestException("Game is already over.");
+        }
+
+        Connection connection = createConnection(authData, gameData, session);
+
+        if (connection.playerStatus().equals("OBSERVER")){
+            throw new BadRequestException("Observers may not resign.");
+        }
+
+        game.setGameOver(true);
+        GameData newGameData = new GameData(gameID, gameData.whiteUsername(), gameData.blackUsername(), gameData.gameName(), game);
+        dataAccess.updateGame(newGameData);
+
+        NotificationMessage notificationMessage = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, authData.username() + " has resigned");
+        connectionManager.notifyAll(gameID, notificationMessage);
     }
 }
