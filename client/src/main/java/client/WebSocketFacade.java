@@ -1,6 +1,6 @@
 package client;
 
-import org.eclipse.jetty.websocket.api.Session;
+import jakarta.websocket.Session;
 
 public class WebSocketFacade {
     Session session;
@@ -9,8 +9,8 @@ public class WebSocketFacade {
 
     }
 
-    public void connect() throws ResponseException { ... }
-    public void makeMove() throws ResponseException { ... }
-    public void resign() throws ResponseException { ... }
-    public void leave () throws ResponseException { ... }
+    public void connect() throws ResponseException {}
+    public void makeMove() throws ResponseException {}
+    public void resign() throws ResponseException {}
+    public void leave () throws ResponseException {}
 }
