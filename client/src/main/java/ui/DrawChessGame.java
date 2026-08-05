@@ -53,12 +53,14 @@ public class DrawChessGame {
         return ((row + col) % 2 == 0);
     }
 
-    private static boolean isHighlightedSquare(int row, int col, HashSet<ChessPosition> highlightedSquares){
-        return highlightedSquares.contains(new ChessPosition(row, col));
+    private static boolean isHighlightedSquare(int row, int col, String playerColor, HashSet<ChessPosition> highlightedSquares){
+        ChessPosition square = translatePosition(playerColor, new ChessPosition(row, col));
+        return highlightedSquares.contains(square);
     }
 
-    private static boolean isHighlightedPiecePosition(int row, int col, ChessPosition position) {
-        return (position != null) && (new ChessPosition(row, col)).equals(position);
+    private static boolean isHighlightedPiecePosition(int row, int col, String playerColor, ChessPosition position) {
+        ChessPosition square = translatePosition(playerColor, new ChessPosition(row, col));
+        return (position != null) && square.equals(position);
     }
 
     private static String toFullWidth(char c){
@@ -183,11 +185,11 @@ public class DrawChessGame {
                     if (labelRows(out, rowLabels, col, row, charRow)) {
                         continue;
                     }
-                } else if (isHighlightedPiecePosition(row, col, piecePosition)){
+                } else if (isHighlightedPiecePosition(row, col, playerColor, piecePosition)){
                     setHighlightPiece(out);
-                } else if (isHighlightedSquare(row, col, highlightedSquares) && isWhiteSquare(row, col)) {
+                } else if (isHighlightedSquare(row, col, playerColor, highlightedSquares) && isWhiteSquare(row, col)) {
                     setHighlightWhite(out);
-                } else if (isHighlightedSquare(row, col, highlightedSquares)) {
+                } else if (isHighlightedSquare(row, col, playerColor, highlightedSquares)) {
                     setHighlightBlack(out);
                 } else if (isWhiteSquare(row, col)){
                     setWhite(out);
