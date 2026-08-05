@@ -28,6 +28,7 @@ public class Repl implements NotificationHandler {
     private final WebSocketFacade webFacade;
     private String authToken;
     private String currentPlayerColor;
+    private ChessBoard currentBoard;
     private HashMap<Integer, Integer> gameIDs;
 
     public Repl(int port) throws ResponseException {
@@ -37,6 +38,7 @@ public class Repl implements NotificationHandler {
 
         this.authToken = null;
         this.currentPlayerColor = "";
+        this.currentBoard = null;
         this.gameIDs = new HashMap<>();
     }
 
@@ -107,9 +109,12 @@ public class Repl implements NotificationHandler {
 
     private void gamePlayHelpMenu(){
         String[][] gamePlayMenu = {{"move", "make a move in the current game"},
-                {"leave", "the current game"},
+                {"redraw", "the current board state"},
+                {"highlight", "legal moves"},
                 {"resign", "and forfeit the current match"},
-                {"quit", "return to previous menu"}};
+                {"leave", "the current game"},
+                {"quit", "return to previous menu"},
+                {"help", "with possible commands"}};
 
         printFormattedMenu(gamePlayMenu);
     }
@@ -190,8 +195,9 @@ public class Repl implements NotificationHandler {
     public void loadGame(LoadGameMessage message){
         ChessGame game = message.getGame();
         ChessBoard board = game.getBoard();
+        currentBoard = board;
 
-        drawChessBoard(board, currentPlayerColor.toUpperCase());
+        drawChessBoard(currentBoard, currentPlayerColor.toUpperCase());
     }
 
     public void notificationMessage(NotificationMessage notification){
@@ -317,7 +323,7 @@ public class Repl implements NotificationHandler {
                     facade.joinGame(authToken, currentPlayerColor, gameID);
                     printBold("Successfully joined game as " + currentPlayerColor.toLowerCase() + "\n");
                     webFacade.connect(authToken, gameID);
-                    gamePlay();
+                    gamePlay(gameID);
                 } catch (ResponseException e){
                     printErrorReport(e.getMessage());
                 } catch (Exception e){ printServerErrorReport();}
@@ -333,7 +339,7 @@ public class Repl implements NotificationHandler {
                 } catch (ResponseException e) {
                     printErrorReport(e.getMessage());
                 }
-                gamePlay();
+                gamePlay(gameID);
             } else if (command.equals("logout")){
                 if (quit("Are you sure you would like to logout (and return to the previous menu)? <y/n>")){
                     try {
@@ -359,7 +365,7 @@ public class Repl implements NotificationHandler {
         return quitApplication;
     }
 
-    public void gamePlay(){
+    public void gamePlay(int gameID){
         gamePlayHelpMenu();
 
         while (true){
@@ -371,18 +377,36 @@ public class Repl implements NotificationHandler {
             String command = info[0].toLowerCase();
             if (command.equals("move")){
 
+            }  else if (command.equals("redraw")){
+
+            } else if (command.equals("highlight")){
+
+            } else if (command.equals("resign")) {
+                System.out.println("Are you sure you want to resign? (No more moves can be made. You may view the final board state until you leave). <y/n>");
+                String answer = scanner.nextLine();
+
+                if (answer.equalsIgnoreCase("y")) {
+                    try {
+                        webFacade.resign(authToken, gameID);
+                    } catch (ResponseException e) {
+                        printErrorReport(e.getMessage());
+                    }
+                }
             } else if (command.equals("leave")){
-
-            } else if (command.equals("resign")){
-
-            } else if (command.equals("quit")){
-                System.out.println("Are you sure you want to quit playing/observing this chess game (and return to the previous menu)? <y/n>");
+                System.out.println("Are you sure you want to leave this chess game (and return to the previous menu)? <y/n>");
                 String answer = scanner.nextLine();
 
                 if (answer.equalsIgnoreCase("y")){
-                    postloginHelpMenu();
-                    return;
+                    try {
+                        webFacade.leave(authToken, gameID);
+                        postloginHelpMenu();
+                        return;
+                    } catch (ResponseException e) {
+                        printErrorReport(e.getMessage());
+                    }
                 }
+            } else if (command.equals("help")){
+                gamePlayHelpMenu();
             } else {printInvalidOptionReport(); }
         }
     }
