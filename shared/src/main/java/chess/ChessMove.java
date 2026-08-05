@@ -57,6 +57,11 @@ public class ChessMove {
         return startPosEq && endPosEq && promotionPieceEq;
     }
 
+    private String formatPosition(ChessPosition position) {
+        char colLetter = (char) ('a' + position.getColumn() - 1);
+        return "" + colLetter + position.getRow();
+    }
+
     @Override
     public int hashCode() {
         return Objects.hash(startPosition, endPosition, promotionPiece);
@@ -64,10 +69,6 @@ public class ChessMove {
 
     @Override
     public String toString() {
-        return "ChessMove{" +
-                "startPosition=" + startPosition +
-                ", endPosition=" + endPosition +
-                ", promotionPiece=" + promotionPiece +
-                '}';
+        return formatPosition(startPosition) + " to " + formatPosition(endPosition);
     }
 }
