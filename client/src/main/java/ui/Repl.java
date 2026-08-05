@@ -106,10 +106,10 @@ public class Repl implements NotificationHandler {
     }
 
     private void gamePlayHelpMenu(){
-        String[][] gamePlayMenu = {{"quit", "return to previous menu"}};
-
-        System.out.println("Sorry - game play/observation is currently unsupported.");
-        System.out.println("Come back soon to play/observe!");
+        String[][] gamePlayMenu = {{"move", "make a move in the current game"},
+                {"leave", "the current game"},
+                {"resign", "and forfeit the current match"},
+                {"quit", "return to previous menu"}};
 
         printFormattedMenu(gamePlayMenu);
     }
@@ -368,10 +368,14 @@ public class Repl implements NotificationHandler {
             String line = scanner.nextLine().trim();
             var info = line.split("\\s+");
 
-
             String command = info[0].toLowerCase();
+            if (command.equals("move")){
 
-            if (command.equals("quit")){
+            } else if (command.equals("leave")){
+
+            } else if (command.equals("resign")){
+
+            } else if (command.equals("quit")){
                 System.out.println("Are you sure you want to quit playing/observing this chess game (and return to the previous menu)? <y/n>");
                 String answer = scanner.nextLine();
 
