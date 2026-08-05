@@ -26,7 +26,11 @@ public class DrawChessGame {
         out.print(SET_BG_COLOR_WHITE);
     }
 
-    private static void setGreen(PrintStream out) { out.print(SET_BG_COLOR_GREEN); }
+    private static void setHighlightBlack(PrintStream out) { out.print(SET_HIGHLIGHT_BLACK_COLOR); }
+
+    private static void setHighlightWhite(PrintStream out) { out.print(SET_HIGHLIGHT_WHITE_COLOR); }
+
+    private static void setHighlightPiece(PrintStream out) {out.print(SET_HIGHLIGHT_CURRENT_POS_COLOR); }
 
     private static void setWhiteText(PrintStream out){
         out.print(SET_TEXT_COLOR_WHITE);
@@ -43,6 +47,18 @@ public class DrawChessGame {
     private static void setDefault(PrintStream out){
         out.print(RESET_BG_COLOR);
         out.print(RESET_TEXT_COLOR);
+    }
+
+    private static boolean isWhiteSquare(int row, int col){
+        return ((row + col) % 2 == 0);
+    }
+
+    private static boolean isHighlightedSquare(int row, int col, HashSet<ChessPosition> highlightedSquares){
+        return highlightedSquares.contains(new ChessPosition(row, col));
+    }
+
+    private static boolean isHighlightedPiecePosition(int row, int col, ChessPosition position) {
+        return (position != null) && (new ChessPosition(row, col)).equals(position);
     }
 
     private static String toFullWidth(char c){
@@ -155,7 +171,7 @@ public class DrawChessGame {
         return false;
     }
 
-    private static void drawRow(PrintStream out, ChessBoard board, String playerColor, HashSet<ChessPosition> highlightedSquares, List<String> colLabels, List<Integer> rowLabels, int row){
+    private static void drawRow(PrintStream out, ChessBoard board, String playerColor, HashSet<ChessPosition> highlightedSquares, ChessPosition piecePosition, List<String> colLabels, List<Integer> rowLabels, int row){
         for (int charRow = 0; charRow < BOARD_SQUARE_SIZE; charRow++){
             for (int col = 0; col < 10; col++) {
                 ChessPosition position = new ChessPosition(row, col);
@@ -167,9 +183,13 @@ public class DrawChessGame {
                     if (labelRows(out, rowLabels, col, row, charRow)) {
                         continue;
                     }
-                } else if (highlightedSquares.contains(translatePosition(playerColor, position))) {
-                    setGreen(out);
-                } else if ((row + col) % 2 == 0){
+                } else if (isHighlightedPiecePosition(row, col, piecePosition)){
+                    setHighlightPiece(out);
+                } else if (isHighlightedSquare(row, col, highlightedSquares) && isWhiteSquare(row, col)) {
+                    setHighlightWhite(out);
+                } else if (isHighlightedSquare(row, col, highlightedSquares)) {
+                    setHighlightBlack(out);
+                } else if (isWhiteSquare(row, col)){
                     setWhite(out);
                 } else {
                     setLightPink(out);
@@ -194,9 +214,9 @@ public class DrawChessGame {
         }
     }
 
-    public static void drawChessBoard(PrintStream out, ChessBoard board, String playerColor, HashSet<ChessPosition> highlightedSquares){
+    public static void drawChessBoard(PrintStream out, ChessBoard board, String playerColor, HashSet<ChessPosition> highlightedSquares, ChessPosition position){
         for (int row = 0; row < 10; row++){
-            drawRow(out, board, playerColor, highlightedSquares, getColLabels(playerColor), getRowLabels(playerColor), row);
+            drawRow(out, board, playerColor, highlightedSquares, position, getColLabels(playerColor), getRowLabels(playerColor), row);
         }
     }
 }
