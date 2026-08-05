@@ -123,6 +123,10 @@ public class GamePlayService {
         return username + " has made move: " + move.toString();
     }
 
+    public void reportErrorToRoot(ServerMessage message, Session session) {
+        connectionManager.notifyRoot(message, session);
+    }
+
     public GamePlayService(DataAccess dataAccess){
         this.dataAccess = dataAccess;
         this.connectionManager = new ConnectionManager();
@@ -139,7 +143,7 @@ public class GamePlayService {
         connectionManager.addConnection(gameID, connection);
 
         LoadGameMessage loadGameMessage = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, gameData.game());
-        connectionManager.notifyRoot(loadGameMessage, connection);
+        connectionManager.notifyRoot(loadGameMessage, session);
 
         String notification = generateConnectMessage(connection);
         NotificationMessage notificationMessage = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, notification);
