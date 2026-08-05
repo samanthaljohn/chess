@@ -70,7 +70,7 @@ public class GameHandler extends ErrorHandler{
         String color = joinGameRequest.playerColor();
 
         if(color == null || (!color.equals("WHITE") && !color.equals("BLACK")) || joinGameRequest.gameID() == 0) {
-            handleError(context, 400, "Player color must be white or black.");
+            handleError(context, 400, "Error: Player color must be white or black.");
             return;
         }
 
