@@ -6,7 +6,6 @@ import chess.ChessPiece;
 import chess.ChessPosition;
 
 import java.io.PrintStream;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static ui.EscapeSequences.*;
@@ -15,17 +14,19 @@ public class DrawChessGame {
     private static final int BOARD_SQUARE_SIZE = 3;
 
     // color setters
-    private static void setLightPink(PrintStream out){
-        out.print(SET_BG_COLOR_LIGHT_PINK);
-    }
-
     private static void setBorder(PrintStream out){
         out.print(SET_BG_COLOR_PURPLE);
+    }
+
+    private static void setLightPink(PrintStream out){
+        out.print(SET_BG_COLOR_LIGHT_PINK);
     }
 
     private static void setWhite(PrintStream out){
         out.print(SET_BG_COLOR_WHITE);
     }
+
+    private static void setGreen(PrintStream out) { out.print(SET_BG_COLOR_GREEN); }
 
     private static void setWhiteText(PrintStream out){
         out.print(SET_TEXT_COLOR_WHITE);
@@ -48,8 +49,10 @@ public class DrawChessGame {
         return String.valueOf((char)(c + 0xFEE0));
     }
 
-    // getters
-    private static ChessPiece getPiece(ChessBoard board, String playerColor, int row, int col){
+    private static ChessPosition translatePosition(String playerColor, ChessPosition position){
+        int row = position.getRow();
+        int col = position.getColumn();
+
         int piece_row, piece_col;
         if (playerColor.equals("BLACK")){
             piece_row = row;
@@ -59,8 +62,13 @@ public class DrawChessGame {
             piece_col = col;
         }
 
-        ChessPosition position = new ChessPosition(piece_row, piece_col);
-        ChessPiece piece = board.getPiece(position);
+        return new ChessPosition(piece_row, piece_col);
+    }
+
+    // getters
+    private static ChessPiece getPiece(ChessBoard board, String playerColor, ChessPosition position){
+        ChessPosition viewPosition = translatePosition(playerColor, position);
+        ChessPiece piece = board.getPiece(viewPosition);
         return piece;
     }
 
@@ -147,17 +155,20 @@ public class DrawChessGame {
         return false;
     }
 
-    private static void drawRow(PrintStream out, ChessBoard board, String playerColor, List<String> colLabels, List<Integer> rowLabels, int row){
+    private static void drawRow(PrintStream out, ChessBoard board, String playerColor, HashSet<ChessPosition> highlightedSquares, List<String> colLabels, List<Integer> rowLabels, int row){
         for (int charRow = 0; charRow < BOARD_SQUARE_SIZE; charRow++){
-            for (int col = 0; col < 10; col++){
-                if((row == 0 || row == 9) || (col == 0 || col == 9)){
+            for (int col = 0; col < 10; col++) {
+                ChessPosition position = new ChessPosition(row, col);
+                if ((row == 0 || row == 9) || (col == 0 || col == 9)) {
                     setBorder(out);
-                    if (labelCols(out, colLabels, col, row, charRow)){
+                    if (labelCols(out, colLabels, col, row, charRow)) {
                         continue;
                     }
-                    if(labelRows(out, rowLabels, col, row, charRow)){
+                    if (labelRows(out, rowLabels, col, row, charRow)) {
                         continue;
                     }
+                } else if (highlightedSquares.contains(translatePosition(playerColor, position))) {
+                    setGreen(out);
                 } else if ((row + col) % 2 == 0){
                     setWhite(out);
                 } else {
@@ -165,7 +176,7 @@ public class DrawChessGame {
                 }
 
                 if (charRow == 1 && (row > 0 && row < 9) && (col > 0 && col < 9)){
-                    ChessPiece piece = getPiece(board, playerColor, row, col);
+                    ChessPiece piece = getPiece(board, playerColor, position);
 
                     if (piece != null){
                         out.print(EMPTY.repeat(1));
@@ -183,9 +194,9 @@ public class DrawChessGame {
         }
     }
 
-    public static void drawChessBoard(PrintStream out, ChessBoard board, String playerColor){
+    public static void drawChessBoard(PrintStream out, ChessBoard board, String playerColor, HashSet<ChessPosition> highlightedSquares){
         for (int row = 0; row < 10; row++){
-            drawRow(out, board, playerColor, getColLabels(playerColor), getRowLabels(playerColor), row);
+            drawRow(out, board, playerColor, highlightedSquares, getColLabels(playerColor), getRowLabels(playerColor), row);
         }
     }
 }
