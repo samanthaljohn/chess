@@ -200,7 +200,8 @@ public class GamePlayService {
 
         Connection connection = createConnection(authData, gameData, session);
 
-        NotificationMessage notificationMessage = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, authData.username() + " left the game");
+        String message = authData.username() + " left the game";
+        var notificationMessage = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
         connectionManager.notifyAllButRoot(gameID, notificationMessage, connection);
 
         connectionManager.removeConnection(gameID, connection);
@@ -229,7 +230,8 @@ public class GamePlayService {
         GameData newGameData = createNewGameData(gameData);
         dataAccess.updateGame(newGameData);
 
-        NotificationMessage notificationMessage = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, authData.username() + " has resigned");
+        String message = authData.username() + " has resigned";
+        var notificationMessage = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
         connectionManager.notifyAll(gameID, notificationMessage);
     }
 }
