@@ -4,6 +4,7 @@ import chess.*;
 import client.ResponseException;
 import client.ServerFacade;
 import client.WebSocketFacade;
+import dataaccess.BadRequestException;
 import model.PublicGameData;
 import result.CreateGameResult;
 import result.ListGamesResult;
@@ -59,12 +60,23 @@ public class Repl implements NotificationHandler {
         System.out.print(RESET_TEXT_ITALIC);
     }
 
+    private void printGamePlayErrorReport(String message){
+        System.out.print(SET_TEXT_ITALIC);
+        System.out.println(message);
+        System.out.print(RESET_TEXT_ITALIC);
+
+        printUserPrompt("IN_GAME");
+    }
+
     private void printNotification(String message){
         System.out.print(SET_TEXT_ITALIC);
         System.out.print(SET_TEXT_COLOR_GREEN);
+        System.out.println();
         System.out.println(message);
         System.out.print(RESET_TEXT_COLOR);
         System.out.print(RESET_TEXT_ITALIC);
+
+        printUserPrompt("IN_GAME");
     }
 
     private void printServerErrorReport(){
@@ -115,6 +127,7 @@ public class Repl implements NotificationHandler {
             {"help", "with possible commands"}};
 
         printFormattedMenu(gamePlayMenu);
+        printUserPrompt("IN_GAME");
     }
 
     private void promotionPieceOptionMenu(){
@@ -195,8 +208,17 @@ public class Repl implements NotificationHandler {
     }
 
     private ChessPosition convertPosition(String position) {
+        if (position.length() != 2) {
+            return null;
+        }
+
+        position = position.toLowerCase();
         int col = position.charAt(0) - 'a' + 1;
         int row = Character.getNumericValue(position.charAt(1));
+
+        if (col > 8 || col < 1 || row > 8 || row < 1){
+            return null;
+        }
 
         return new ChessPosition(row, col);
     }
@@ -270,6 +292,7 @@ public class Repl implements NotificationHandler {
         if (highlightedSquares == null){ highlightedSquares = new HashSet<>(); }
 
         DrawChessGame.drawChessBoard(out, board, playerColor, highlightedSquares, highlightedPiecePosition);
+        gamePlayHelpMenu();
     }
 
     public void loadGame(LoadGameMessage message){
@@ -280,7 +303,6 @@ public class Repl implements NotificationHandler {
         currentBoard = board;
 
         drawChessBoard(currentBoard, currentPlayerColor.toUpperCase(), null, null);
-        gamePlayHelpMenu();
     }
 
     public void notificationMessage(NotificationMessage notification){
@@ -321,7 +343,6 @@ public class Repl implements NotificationHandler {
 
                     boolean quitApplication = postLoginRepl();
                     if (quitApplication == true){
-                        System.out.println("Thanks for playing!");
                         break;
                     }
                 } catch (ResponseException e) {
@@ -342,7 +363,6 @@ public class Repl implements NotificationHandler {
 
                     boolean quitApplication = postLoginRepl();
                     if (quitApplication == true){
-                        System.out.println("Thanks for playing!");
                         break;
                     }
                 } catch (ResponseException e){
@@ -450,29 +470,40 @@ public class Repl implements NotificationHandler {
 
     public void gamePlay(int gameID){
         while (true){
-            printUserPrompt("IN_GAME");
-
             String line = scanner.nextLine().trim();
             var info = line.split("\\s+");
 
             String command = info[0].toLowerCase();
+            if (command.isEmpty()){ continue;}
+
             if (command.equals("move")){
-                if(!validateArgCount(info, 3, "Please specify the starting and ending positions for the move you are trying to make.")){ continue; }
+                if(!validateArgCount(info, 3, "Please specify the starting and ending positions for the move you are trying to make.")){
+                    printUserPrompt("IN_GAME");
+                    continue;
+                }
 
                 ChessPosition startPos = convertPosition(info[1]);
+                if (startPos == null) {
+                    printGamePlayErrorReport("Invalid move.");
+                    continue;
+                }
                 ChessPiece piece = currentBoard.getPiece(startPos);
 
                 if (piece == null) {
-                    printErrorReport("No piece at provided start position.");
+                    printGamePlayErrorReport("No piece at provided start position.");
                     continue;
                 }
 
                 if (!piece.getTeamColor().toString().equals(currentPlayerColor)){
-                    printErrorReport("You may not move your opponents pieces.");
+                    printGamePlayErrorReport("You may not move your opponents pieces.");
                     continue;
                 }
 
                 ChessPosition endPos = convertPosition(info[2]);
+                if (endPos == null) {
+                    printGamePlayErrorReport("Invalid move.");
+                    continue;
+                }
                 ChessPiece.PieceType promotionType = null;
 
                 if (isPromotionMove(startPos, endPos)) {
@@ -483,27 +514,40 @@ public class Repl implements NotificationHandler {
                 try {
                     webFacade.makeMove(authToken, gameID, move);
                 } catch (ResponseException e) {
-                    printErrorReport(e.getMessage());
+                    printGamePlayErrorReport(e.getMessage());
                 }
             }  else if (command.equals("redraw")){
-                if(!validateArgCount(info, 1, "Type redraw to redraw the current chess board;")) { continue; }
+                if(!validateArgCount(info, 1, "Type redraw to redraw the current chess board;")) {
+                    printUserPrompt("IN_GAME");
+                    continue;
+                }
 
                 drawChessBoard(currentBoard, currentPlayerColor, null, null);
             } else if (command.equals("highlight")){
-                if(!validateArgCount(info, 2, "Please specify the position of the piece for which you would like to see legal moves.")) { continue; }
+                if(!validateArgCount(info, 2, "Please specify the position of the piece for which you would like to see legal moves.")) {
+                    printUserPrompt("IN_GAME");
+                    continue;
+                }
 
                 ChessPosition startPos = convertPosition(info[1]);
+                if (startPos == null) {
+                    printGamePlayErrorReport("Invalid move.");
+                    continue;
+                }
                 ChessPiece piece = currentBoard.getPiece(startPos);
 
                 if (piece == null) {
-                    printErrorReport("No piece at provided start position.");
+                    printGamePlayErrorReport("No piece at provided start position.");
                     continue;
                 }
 
                 HashSet<ChessPosition> legalEndPos = getLegalEndPos(startPos);
                 drawChessBoard(currentBoard, currentPlayerColor, legalEndPos, startPos);
             } else if (command.equals("resign")) {
-                if(!validateArgCount(info, 1, "Type resign to resign.")) { continue; }
+                if(!validateArgCount(info, 1, "Type resign to resign.")) {
+                    printUserPrompt("IN_GAME");
+                    continue;
+                }
 
                 System.out.println("Are you sure you want to resign? (No more moves can be made. You may view the final board state until you leave). <y/n>");
                 String answer = scanner.nextLine();
@@ -512,11 +556,14 @@ public class Repl implements NotificationHandler {
                     try {
                         webFacade.resign(authToken, gameID);
                     } catch (ResponseException e) {
-                        printErrorReport(e.getMessage());
+                        printGamePlayErrorReport(e.getMessage());
                     }
-                }
+                } else { gamePlayHelpMenu(); }
             } else if (command.equals("leave")){
-                if (!validateArgCount(info, 1, "Type leave to leave this chess game.")) { continue; }
+                if (!validateArgCount(info, 1, "Type leave to leave this chess game.")) {
+                    printUserPrompt("IN_GAME");
+                    continue;
+                }
 
                 System.out.println("Are you sure you want to leave this chess game (and return to the previous menu)? <y/n>");
                 String answer = scanner.nextLine();
@@ -527,12 +574,15 @@ public class Repl implements NotificationHandler {
                         postloginHelpMenu();
                         return;
                     } catch (ResponseException e) {
-                        printErrorReport(e.getMessage());
+                        printGamePlayErrorReport(e.getMessage());
                     }
-                }
+                } else { gamePlayHelpMenu(); }
             } else if (command.equals("help")){
                 gamePlayHelpMenu();
-            } else {printInvalidOptionReport(); }
+            } else {
+                printInvalidOptionReport();
+                printUserPrompt("IN_GAME");
+            }
         }
     }
 }
