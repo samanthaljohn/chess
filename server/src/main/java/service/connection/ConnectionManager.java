@@ -1,7 +1,7 @@
 package service.connection;
 
 import com.google.gson.Gson;
-import jakarta.websocket.Session;
+import org.eclipse.jetty.websocket.api.Session;
 import websocket.messages.ServerMessage;
 
 import java.util.ArrayList;
@@ -53,7 +53,7 @@ public class ConnectionManager {
 
         Session session = connectionToSend.session();
         try {
-            session.getBasicRemote().sendText(json);
+            session.getRemote().sendString(json);
         } catch (Exception e){
             System.out.println(e.getMessage());
         }
@@ -70,7 +70,7 @@ public class ConnectionManager {
         for (Connection existingConnection : connections){
             Session session = existingConnection.session();
             try {
-                session.getBasicRemote().sendText(json);
+                session.getRemote().sendString(json);
             } catch (Exception e){
                 System.out.println(e.getMessage());
             }
@@ -90,7 +90,7 @@ public class ConnectionManager {
             Session session = existingConnection.session();
             if (!existingConnection.equals(connectionToExclude)) {
                 try {
-                    session.getBasicRemote().sendText(json);
+                    session.getRemote().sendString(json);
                 } catch (Exception e) {
                     System.out.println(e.getMessage());
                 }
