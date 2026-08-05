@@ -160,10 +160,10 @@ public class GamePlayService {
 
         Connection connection = createConnection(authData, gameData, session);
         if(connection.playerStatus().equals("OBSERVER")){
-            throw new BadRequestException("Observers may not make moves.");
+            throw new BadRequestException("Error: Observers may not make moves.");
         }
         if (connection.playerColor() != game.getTeamTurn()) {
-            throw new BadRequestException("It is not your turn");
+            throw new BadRequestException("Error: It is not your turn");
         }
 
         ChessMove move = command.getMove();
@@ -216,13 +216,13 @@ public class GamePlayService {
         ChessGame game = gameData.game();
 
         if (game.getGameOver()) {
-            throw new BadRequestException("Game is already over.");
+            throw new BadRequestException("Error: Game is already over.");
         }
 
         Connection connection = createConnection(authData, gameData, session);
 
         if (connection.playerStatus().equals("OBSERVER")){
-            throw new BadRequestException("Observers may not resign.");
+            throw new BadRequestException("Error: Observers may not resign.");
         }
 
         game.setGameOver(true);
