@@ -10,7 +10,11 @@ public class ClientMain {
             port = Integer.parseInt(args[0]);
         }
 
-        Repl repl = new Repl(port);
-        repl.preLoginRepl();
+        try {
+            Repl repl = new Repl(port);
+            repl.preLoginRepl();
+        } catch (ResponseException e) {
+            System.out.print("Server connection could not be established.");
+        }
     }
 }
