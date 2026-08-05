@@ -27,6 +27,7 @@ public class Repl implements NotificationHandler {
     private final WebSocketFacade webFacade;
     private String authToken;
     private String currentPlayerColor;
+    private ChessGame currentGame;
     private ChessBoard currentBoard;
     private HashMap<Integer, Integer> gameIDs;
 
@@ -37,6 +38,7 @@ public class Repl implements NotificationHandler {
 
         this.authToken = null;
         this.currentPlayerColor = "";
+        this.currentGame = null;
         this.currentBoard = null;
         this.gameIDs = new HashMap<>();
     }
@@ -228,7 +230,7 @@ public class Repl implements NotificationHandler {
             System.out.println("Your move is eligible for a promotion! What piece type would you like to promote your pawn to?");
             promotionPieceOptionMenu();
 
-            String answer = scanner.nextLine();
+            String answer = scanner.nextLine().toLowerCase().strip();
 
             switch (answer){
                 case "q":
@@ -259,6 +261,8 @@ public class Repl implements NotificationHandler {
 
     public void loadGame(LoadGameMessage message){
         ChessGame game = message.getGame();
+        currentGame = game;
+
         ChessBoard board = game.getBoard();
         currentBoard = board;
 
@@ -474,6 +478,18 @@ public class Repl implements NotificationHandler {
 
                 drawChessBoard(currentBoard, currentPlayerColor);
             } else if (command.equals("highlight")){
+                if(!validateArgCount(info, 2, "Please specify the position of the piece for which you would like to see legal moves.")) { continue; }
+
+                ChessPosition startPos = convertPosition(info[1]);
+                ChessPiece piece = currentBoard.getPiece(startPos);
+
+                if (piece == null) {
+                    printErrorReport("No piece at provided start position.");
+                    continue;
+                }
+
+                Collection<ChessMove> legalMoves = currentGame.validMoves(startPos);
+
 
             } else if (command.equals("resign")) {
                 if(!validateArgCount(info, 1, "Type resign to resign.")) { continue; }
