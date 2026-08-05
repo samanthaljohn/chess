@@ -53,9 +53,7 @@ public class ConnectionManager {
 
         try {
             session.getRemote().sendString(json);
-        } catch (Exception e){
-            System.out.println(e.getMessage());
-        }
+        } catch (Exception e){}
     }
 
     public void notifyAll(int gameID, ServerMessage message) {
@@ -70,9 +68,7 @@ public class ConnectionManager {
             Session session = existingConnection.session();
             try {
                 session.getRemote().sendString(json);
-            } catch (Exception e){
-                System.out.println(e.getMessage());
-            }
+            } catch (Exception e){}
         }
     }
 
@@ -90,9 +86,7 @@ public class ConnectionManager {
             if (!existingConnection.equals(connectionToExclude)) {
                 try {
                     session.getRemote().sendString(json);
-                } catch (Exception e) {
-                    System.out.println(e.getMessage());
-                }
+                } catch (Exception e) {}
             }
         }
     }
